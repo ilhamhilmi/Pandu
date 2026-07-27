@@ -8,7 +8,7 @@ Fitur yang akan ditawarkan dan disajikan ke pengguna
 > Tahap pengembangan 1
 # Authentication
 
-1. Daftar atau buat akun (email, password) atau menggunakan akun Google
+1. Daftar atau buat akun (email, password) atau menggunakan akun Google, auth supabase
 2. Masuk / login (email, password) atau bisa menggunakan akun Google
 3. Lupa password, verifikasi reset password via email terdaftar
 4. Logout
