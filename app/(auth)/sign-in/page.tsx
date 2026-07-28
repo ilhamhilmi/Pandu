@@ -4,45 +4,20 @@ import { useState } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { CiMail, CiLock } from "react-icons/ci";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase/client";
 
-
-
-export default function Register() {
+export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-
-  async function handleRegister(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-
-    if(password.length < 8){
-      alert("Password minimal 8 karakter")
-    }
-
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password
-    })
-
-    if (error) {
-      alert(error.message)
-      return;
-    }
-
-    console.log(data)
-  }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
+    <main className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-md space-y-8">
         {/* Header */}
         <div className="text-start">
           <h1 className="font-inter text-4xl xl:text-5xl font-bold text-foreground">
-            Mulai atur <span className="text-primary">keuangan</span> kamu
+            Selamat datang <span className="font-inter text-primary">kembali!</span>
           </h1>
           <p className="mt-2 text-sm text-gray-500 font-inter">
-            Bikin akun & gunakan layanan gratis untuk membantu mengatur keuangan kamu.
+            Masuk untuk lanjut atur keuangan kamu
           </p>
         </div>
 
@@ -68,7 +43,7 @@ export default function Register() {
               fill="#EA4335"
             />
           </svg>
-          Daftar pakai Google
+          Masuk pakai Google
         </button>
 
         {/* Divider */}
@@ -81,8 +56,8 @@ export default function Register() {
           </div>
         </div>
 
-        {/* Register Form */}
-        <form className="space-y-6" onSubmit={handleRegister}>
+        {/* Login Form */}
+        <form className="space-y-6">
           {/* Email Input */}
           <div>
             <label
@@ -96,7 +71,6 @@ export default function Register() {
                 <CiMail className="h-5 w-5" />
               </span>
               <input
-                onChange={(e) => setEmail(e.target.value)}
                 id="email"
                 type="email"
                 placeholder="EmailKamu@email.com"
@@ -118,7 +92,6 @@ export default function Register() {
                 <CiLock className="h-5 w-5" />
               </span>
               <input
-                onChange={(e) => setPassword(e.target.value)}
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Minimal 8 karakter"
@@ -138,23 +111,33 @@ export default function Register() {
             </div>
           </div>
 
-          {/* Sign Up Button */}
+          {/* Forgot Password */}
+          <div className="flex justify-end">
+            <button
+              type="button"
+              className="font-inter text-sm text-primary transition-colors hover:text-primary-hover"
+            >
+              Lupa password?
+            </button>
+          </div>
+
+          {/* Sign In Button */}
           <button
             type="submit"
             className="font-inter w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
           >
-            Daftar
+            Masuk
           </button>
         </form>
 
-        {/* Login Link */}
+        {/* Register Link */}
         <p className="text-center font-inter text-sm text-gray-500">
-          Sudah punya akun?{" "}
+          Kamu pengguna baru?{" "}
           <Link
-            href="/login"
+            href="/sign-up"
             className="font-medium text-primary transition-colors hover:text-primary-hover"
           >
-            Masuk sekarang
+            Bikin akun gratis
           </Link>
         </p>
       </div>

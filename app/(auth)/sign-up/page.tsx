@@ -4,20 +4,67 @@ import { useState } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { CiMail, CiLock } from "react-icons/ci";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase/client";
 
-export default function Login() {
+
+
+export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+
+  function isStrongPassword(password: string) {
+    const hasLowercase = /[a-z]/.test(password); //huruf kecil
+    const hasUppercase = /[A-Z]/.test(password); // huruf kapital
+    const hasNumber = /[0-9]/.test(password); // angka
+    const hasSpecial = /[^A-Za-z0-9]/.test(password); //simbol
+    const hasMinLength = password.length >= 8;
+
+    return (
+      hasLowercase &&
+      hasUppercase &&
+      hasNumber &&
+      hasSpecial &&
+      hasMinLength
+    );
+  }
+
+  async function handleRegister(e: React.SubmitEvent<HTMLFormElement>) {
+    e.preventDefault()
+
+    if (!isStrongPassword(password)) {
+      alert("Password minimal 8 karakter dan harus mengandung huruf besar, huruf kecil, angka, serta simbol")
+      return;
+    }
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password
+    })
+
+    if (error) {
+      if(error.message === "User already registered"){
+        alert("Email ini sudah terdaftar")
+        return;
+      }
+      alert("Terjadi kesalahan, coba beberapa saat lagi")
+      console.error(error.message)
+      return;
+    }
+
+    alert("Cek email kamu yak.")
+  }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4">
+    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-md space-y-8">
         {/* Header */}
         <div className="text-start">
           <h1 className="font-inter text-4xl xl:text-5xl font-bold text-foreground">
-            Selamat datang <span className="font-inter text-primary">kembali!</span>
+            Mulai atur <span className="text-primary">keuangan</span> kamu
           </h1>
           <p className="mt-2 text-sm text-gray-500 font-inter">
-            Masuk untuk lanjut atur keuangan kamu
+            Bikin akun & gunakan layanan gratis untuk membantu mengatur keuangan kamu.
           </p>
         </div>
 
@@ -43,7 +90,7 @@ export default function Login() {
               fill="#EA4335"
             />
           </svg>
-          Masuk pakai Google
+          Daftar pakai Google
         </button>
 
         {/* Divider */}
@@ -56,8 +103,8 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Login Form */}
-        <form className="space-y-6">
+        {/* Register Form */}
+        <form className="space-y-6" onSubmit={handleRegister}>
           {/* Email Input */}
           <div>
             <label
@@ -71,6 +118,7 @@ export default function Login() {
                 <CiMail className="h-5 w-5" />
               </span>
               <input
+                onChange={(e) => setEmail(e.target.value)}
                 id="email"
                 type="email"
                 placeholder="EmailKamu@email.com"
@@ -92,9 +140,10 @@ export default function Login() {
                 <CiLock className="h-5 w-5" />
               </span>
               <input
+                onChange={(e) => setPassword(e.target.value)}
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Minimal 8 karakter"
+                placeholder="Minimal 8 karakter. Mix huruf, angka, dan simbol."
                 className="block w-full rounded-lg border border-gray-300 bg-background pl-10 pr-11 py-2.5 font-inter text-sm text-foreground placeholder-gray-400 outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
               />
               <button
@@ -111,33 +160,23 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Forgot Password */}
-          <div className="flex justify-end">
-            <button
-              type="button"
-              className="font-inter text-sm text-primary transition-colors hover:text-primary-hover"
-            >
-              Lupa password?
-            </button>
-          </div>
-
-          {/* Sign In Button */}
+          {/* Sign Up Button */}
           <button
             type="submit"
             className="font-inter w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
           >
-            Masuk
+            Daftar
           </button>
         </form>
 
-        {/* Register Link */}
+        {/* Login Link */}
         <p className="text-center font-inter text-sm text-gray-500">
-          Kamu pengguna baru?{" "}
+          Sudah punya akun?{" "}
           <Link
-            href="/register"
+            href="/sign-in"
             className="font-medium text-primary transition-colors hover:text-primary-hover"
           >
-            Bikin akun gratis
+            Masuk sekarang
           </Link>
         </p>
       </div>
