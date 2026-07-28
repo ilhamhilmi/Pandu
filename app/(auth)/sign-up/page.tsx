@@ -43,7 +43,7 @@ export default function Register() {
     })
 
     if (error) {
-      if(error.message === "User already registered"){
+      if (error.message === "User already registered") {
         alert("Email ini sudah terdaftar")
         return;
       }
@@ -59,8 +59,11 @@ export default function Register() {
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-md space-y-8">
         {/* Header */}
+        <div className="flex mb-5">
+          <h2 className="text-primary font-inter uppercase tracking-widest">| Bikin akun baru</h2>
+        </div>
         <div className="text-start">
-          <h1 className="font-inter text-4xl xl:text-5xl font-bold text-foreground">
+          <h1 className="font-inter text-4xl xl:text-5xl font-bold text-foreground tracking-wider">
             Mulai atur <span className="text-primary">keuangan</span> kamu
           </h1>
           <p className="mt-2 text-sm text-gray-500 font-inter">

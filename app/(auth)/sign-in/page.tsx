@@ -12,6 +12,9 @@ export default function Login() {
     <main className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-md space-y-8">
         {/* Header */}
+        <div className="flex mb-5">
+          <h2 className="text-primary font-inter uppercase tracking-widest">| Masuk ke akun</h2>
+        </div>
         <div className="text-start">
           <h1 className="font-inter text-4xl xl:text-5xl font-bold text-foreground">
             Selamat datang <span className="font-inter text-primary">kembali!</span>
