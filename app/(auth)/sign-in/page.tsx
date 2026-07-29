@@ -4,9 +4,47 @@ import { useState } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { CiMail, CiLock } from "react-icons/ci";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase/client";
+import { toast } from "@/components/ui/toast";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const router = useRouter()
+
+  async function handleLogin(e: React.SubmitEvent<HTMLFormElement>) {
+    e.preventDefault()
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    })
+
+    if (error) {
+      if (error.message === "missing email or phone") {
+        toast.add({
+          title: "Kolom email dan password harus diisi"
+        })
+        return;
+      } else if (error.message === "Invalid login credentials") {
+        toast.add({
+          title: "Periksa kembali email atau password kamu"
+        })
+        return;
+      } else {
+        toast.add({
+          title: "Terjadi kesalahan, coba lagi nanti ya"
+        })
+      }
+    } else {
+      toast.add({
+        title: "Selamat datang kembali"
+      })
+      router.push("/")
+    }
+  }
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -60,7 +98,7 @@ export default function Login() {
         </div>
 
         {/* Login Form */}
-        <form className="space-y-6">
+        <form className="space-y-6" onSubmit={handleLogin}>
           {/* Email Input */}
           <div>
             <label
@@ -74,6 +112,7 @@ export default function Login() {
                 <CiMail className="h-5 w-5" />
               </span>
               <input
+                onChange={(e) => setEmail(e.target.value)}
                 id="email"
                 type="email"
                 placeholder="EmailKamu@email.com"
@@ -95,6 +134,7 @@ export default function Login() {
                 <CiLock className="h-5 w-5" />
               </span>
               <input
+                onChange={(e) => setPassword(e.target.value)}
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Minimal 8 karakter"
