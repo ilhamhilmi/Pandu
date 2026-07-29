@@ -1,24 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { CiMail, CiLock } from "react-icons/ci";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
 
-
-
 export default function Register() {
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [passwordError, setPasswordError] = useState("")
 
   function isStrongPassword(password: string) {
-    const hasLowercase = /[a-z]/.test(password); //huruf kecil
-    const hasUppercase = /[A-Z]/.test(password); // huruf kapital
-    const hasNumber = /[0-9]/.test(password); // angka
-    const hasSpecial = /[^A-Za-z0-9]/.test(password); //simbol
-    const hasMinLength = password.length >= 8;
+    const hasLowercase = /[a-z]/.test(password) //huruf kecil
+    const hasUppercase = /[A-Z]/.test(password) // huruf kapital
+    const hasNumber = /[0-9]/.test(password) // angka
+    const hasSpecial = /[^A-Za-z0-9]/.test(password) //simbol
+    const hasMinLength = password.length >= 8
 
     return (
       hasLowercase &&
@@ -33,7 +32,7 @@ export default function Register() {
     e.preventDefault()
 
     if (!isStrongPassword(password)) {
-      alert("Password minimal 8 karakter dan harus mengandung huruf besar, huruf kecil, angka, serta simbol")
+      setPasswordError("Password minimal 8 karakter dan harus mengandung huruf besar, huruf kecil, angka, serta simbol")
       return;
     }
 
@@ -48,11 +47,26 @@ export default function Register() {
         return;
       }
       alert("Terjadi kesalahan, coba beberapa saat lagi")
-      console.error(error.message)
+      // console.log(error.message)
       return;
     }
 
     alert("Cek email kamu yak.")
+  }
+
+  async function handleGoogleRegister(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault()
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/sign-in`
+      }
+    })
+
+    if (error) {
+      alert("Terjadi kesalahan, coba beberapa saat lagi")
+    }
   }
 
   return (
@@ -72,8 +86,9 @@ export default function Register() {
         </div>
 
         <button
+          onClick={handleGoogleRegister}
           type="button"
-          className="font-inter flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-background px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-gray-50"
+          className="font-inter flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-background px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-gray-50 cursor-pointer"
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24">
             <path
@@ -143,16 +158,17 @@ export default function Register() {
                 <CiLock className="h-5 w-5" />
               </span>
               <input
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => { setPassword(e.target.value); setPasswordError("") }}
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Minimal 8 karakter. Mix huruf, angka, dan simbol."
-                className="block w-full rounded-lg border border-gray-300 bg-background pl-10 pr-11 py-2.5 font-inter text-sm text-foreground placeholder-gray-400 outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+                className={`block w-full rounded-lg border border-gray-300 bg-background pl-10 pr-11 py-2.5 font-inter text-sm text-foreground placeholder-gray-400 outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary ${passwordError ? "border-red-500" : "border-gray-300"
+                  }`}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 cursor-pointer"
               >
                 {showPassword ? (
                   <FiEyeOff className="h-5 w-5" />
@@ -161,12 +177,13 @@ export default function Register() {
                 )}
               </button>
             </div>
+            <p className="font-inter text-xs text-red-500 mt-1">{passwordError}</p>
           </div>
 
           {/* Sign Up Button */}
           <button
             type="submit"
-            className="font-inter w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
+            className="font-inter w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover cursor-pointer"
           >
             Daftar
           </button>
