@@ -5,6 +5,7 @@ import { FiEye, FiEyeOff } from "react-icons/fi";
 import { CiMail, CiLock } from "react-icons/ci";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
+import { toast } from "@/components/ui/toast";
 
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false)
@@ -43,15 +44,21 @@ export default function Register() {
 
     if (error) {
       if (error.message === "User already registered") {
-        alert("Email ini sudah terdaftar")
+        toast.add({
+          title : "Email ini udah ada yang pakai"
+        })
         return;
       }
-      alert("Terjadi kesalahan, coba beberapa saat lagi")
+      toast.add({
+        title: "Terjadi kesalahan, coba lagi nanti ya"
+      })
       // console.log(error.message)
       return;
     }
 
-    alert("Cek email kamu yak.")
+    toast.add({
+      title: "Cek email kamu buat konfirmasi akun, terus balik lagi ke sini ya",
+    })
   }
 
   async function handleGoogleRegister(e: React.MouseEvent<HTMLButtonElement>) {
@@ -65,7 +72,9 @@ export default function Register() {
     })
 
     if (error) {
-      alert("Terjadi kesalahan, coba beberapa saat lagi")
+      toast.add({
+        title: "Terjadi kesalahan, coba lagi nanti ya"
+      })
     }
   }
 
