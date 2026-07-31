@@ -1,30 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { CiClock2, CiCalendarDate, CiStar, CiCalendar } from "react-icons/ci";
+import { supabase } from "@/lib/supabase/client";
 
 const GOAL_OPTIONS = [
-    { value: "web-developer", label: "Web Developer" },
-    { value: "mobile-developer", label: "Mobile Developer" },
-    { value: "data-science", label: "Data Science" },
+    { value: "web developer", label: "Web Developer" },
+    { value: "mobile developer", label: "Mobile Developer" },
+    { value: "data science", label: "Data Science" },
     { value: "lainnya", label: "Lainnya" },
 ];
 
 const TARGET_DAYS = [7, 30, 60, 90];
 
 const SKILL_OPTIONS = [
-    { value: "pemula", label: "Belum tahu apa-apa" },
-    { value: "html-css", label: "HTML / CSS" },
-    { value: "basic-logic", label: "Basic logic programming" },
+    { value: "belum tahu apa-apa", label: "Belum tahu apa-apa" },
+    { value: "html & css", label: "HTML / CSS" },
+    { value: "basic logic programming", label: "Basic logic programming" },
     { value: "javascript", label: "JavaScript" },
     { value: "python", label: "Python" },
-    { value: "git", label: "Git / Version Control" },
-    { value: "database", label: "Database (SQL)" },
-    { value: "framework", label: "Framework (React, Vue, dll)" },
-    { value: "api", label: "API / Backend" },
+    { value: "git / version control", label: "Git / Version Control" },
+    { value: "database (sql)", label: "Database (SQL)" },
+    { value: "framework (react, vue, dll)", label: "Framework (React, Vue, dll)" },
+    { value: "API / backend", label: "API / Backend" },
 ];
 
 export default function Onboarding() {
+    const router = useRouter();
     const [goal, setGoal] = useState("");
     const [goalCustom, setGoalCustom] = useState("");
     const [targetDays, setTargetDays] = useState<number | "">(30);
@@ -32,13 +35,99 @@ export default function Onboarding() {
     const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
     const [hoursPerDay, setHoursPerDay] = useState<number | "">(1);
     const [useCustomDays, setUseCustomDays] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     function toggleSkill(skill: string) {
-        setSelectedSkills((prev) =>
-            prev.includes(skill)
+        setSelectedSkills((prev) => {
+            // If clicking "Belum tahu apa-apa", deselect all others
+            if (skill === "belum tahu apa-apa") {
+                return prev.includes(skill) ? [] : ["belum tahu apa-apa"];
+            }
+
+            // If clicking another skill while "belum tahu apa-apa" is selected, remove "belum tahu apa-apa"
+            if (prev.includes("belum tahu apa-apa")) {
+                return prev
+                    .filter((s) => s !== "belum tahu apa-apa")
+                    .concat(prev.includes(skill) ? [] : [skill]);
+            }
+
+            // Normal toggle
+            return prev.includes(skill)
                 ? prev.filter((s) => s !== skill)
-                : [...prev, skill]
-        );
+                : [...prev, skill];
+        });
+    }
+
+    async function handleSubmit(e: FormEvent) {
+        e.preventDefault();
+        setError(null);
+        setIsSubmitting(true);
+
+        // Validate
+        if (!goal) {
+            setError("Pilih goal belajar kamu");
+            setIsSubmitting(false);
+            return;
+        }
+        if (goal === "lainnya" && !goalCustom.trim()) {
+            setError("Tulis goal kamu");
+            setIsSubmitting(false);
+            return;
+        }
+        const finalTargetDays = useCustomDays
+            ? parseInt(targetDaysCustom)
+            : targetDays;
+        if (!finalTargetDays || finalTargetDays <= 0) {
+            setError("Atur target waktu belajar");
+            setIsSubmitting(false);
+            return;
+        }
+        if (selectedSkills.length === 0) {
+            setError("Pilih minimal satu skill");
+            setIsSubmitting(false);
+            return;
+        }
+
+        try {
+            // Get current session
+            const {
+                data: { session },
+            } = await supabase.auth.getSession();
+            if (!session) {
+                setError("Sesi habis, silakan login ulang");
+                setIsSubmitting(false);
+                return;
+            }
+
+            const res = await fetch("/api/onboarding", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    goal,
+                    goalCustom: goal === "lainnya" ? goalCustom.trim() : undefined,
+                    targetDays: finalTargetDays,
+                    selectedSkills,
+                    hoursPerDay: hoursPerDay || null,
+                }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                setError(data.error || "Gagal menyimpan preferensi");
+                setIsSubmitting(false);
+                return;
+            }
+
+            // Success — redirect to dashboard (or roadmap page later)
+            router.push("/");
+        } catch {
+            setError("Terjadi kesalahan, coba lagi");
+            setIsSubmitting(false);
+        }
     }
 
     return (
@@ -61,7 +150,7 @@ export default function Onboarding() {
                     </p>
                 </div>
 
-                <form className="space-y-8">
+                <form onSubmit={handleSubmit} className="space-y-8">
                     {/* Goal Belajar */}
                     <div className="space-y-3">
                         <label className="font-inter block text-sm font-medium text-foreground">
@@ -257,16 +346,25 @@ export default function Onboarding() {
                         </p>
                     </div>
 
+                    {/* Error message */}
+                    {error && (
+                        <div className="font-inter rounded-lg border border-red-400 bg-red-50 px-4 py-3 text-sm text-red-700">
+                            {error}
+                        </div>
+                    )}
+
                     {/* Submit */}
                     <button
                         type="submit"
-                        className="font-inter w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-hover cursor-pointer"
+                        disabled={isSubmitting}
+                        className="font-inter w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-hover disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                     >
-                        Buat Roadmap Belajar
+                        {isSubmitting ? "Menyimpan..." : "Buat Roadmap Belajar"}
                     </button>
-                    
+
                     <button
-                        type="submit"
+                        type="button"
+                        onClick={() => router.push("/")}
                         className="font-inter w-full text-sm cursor-pointer text-muted-foreground hover:text-accent-foreground duration-200"
                     >
                         Atur nanti
