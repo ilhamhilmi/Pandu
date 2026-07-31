@@ -73,7 +73,7 @@ export default function Login() {
             Selamat datang <span className="font-inter text-primary">kembali!</span>
           </h1>
           <p className="mt-2 text-sm text-gray-500 font-inter">
-            Masuk untuk lanjut atur keuangan kamu
+            Masuk untuk lanjutin petualangan belajar kamu
           </p>
         </div>
 

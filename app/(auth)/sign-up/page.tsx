@@ -87,10 +87,10 @@ export default function Register() {
         </div>
         <div className="text-start">
           <h1 className="font-inter text-4xl xl:text-5xl font-bold text-foreground tracking-wider">
-            Mulai atur <span className="text-primary">keuangan</span> kamu
+            Mulai petualangan <span className="text-primary">belajar</span> kamu
           </h1>
           <p className="mt-2 text-sm text-gray-500 font-inter">
-            Bikin akun & gunakan layanan gratis untuk membantu mengatur keuangan kamu.
+            Bikin akun & gunakan layanan gratis untuk membantu kamu belajar
           </p>
         </div>
 
