@@ -21,7 +21,7 @@ Pemula yang ingin belajar programming secara otodidak sering menghadapi masalah 
 
 ## 2. Tujuan Produk (Goals)
 
-1. Membantu pemula mendapatkan **roadmap belajar programming yang personal** berdasarkan goals, waktu, dan skill awal mereka.
+1. Membantu pemula mendapatkan **roadmap belajar programming yang personal** berdasarkan goals, waktu, skill awal, dan waktu belajar (jam) user per hari nya (opsional)
 2. Mengubah roadmap besar menjadi **to-do list harian yang actionable**, sehingga user tidak overwhelmed.
 3. Memberikan rekomendasi sumber belajar (video, artikel) yang **relevan dan terkini**, bukan static database.
 4. Menyediakan UI/UX yang sederhana, ramah pemula, dan mendorong konsistensi belajar.

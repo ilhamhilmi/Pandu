@@ -157,7 +157,7 @@ export default function Onboarding() {
                                     }}
                                     className="font-inter text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                                 >
-                                    ← Pakai preset
+                                    Pakai preset
                                 </button>
                             </div>
                         )}
@@ -263,6 +263,13 @@ export default function Onboarding() {
                         className="font-inter w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-hover cursor-pointer"
                     >
                         Buat Roadmap Belajar
+                    </button>
+                    
+                    <button
+                        type="submit"
+                        className="font-inter w-full text-sm cursor-pointer text-muted-foreground hover:text-accent-foreground duration-200"
+                    >
+                        Atur nanti
                     </button>
                 </form>
             </div>
