@@ -14,6 +14,21 @@ export default function Login() {
   const [password, setPassword] = useState("")
   const router = useRouter()
 
+  async function handleGoogleSignIn() {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/api/auth/callback`,
+      },
+    });
+
+    if (error) {
+      toast.add({
+        title: "Terjadi kesalahan, coba lagi nanti ya",
+      });
+    }
+  }
+
   async function handleLogin(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault()
 
@@ -63,8 +78,9 @@ export default function Login() {
         </div>
 
         <button
+          onClick={handleGoogleSignIn}
           type="button"
-          className="font-inter flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-background px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-gray-50"
+          className="font-inter flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-background px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-gray-50 cursor-pointer"
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24">
             <path
