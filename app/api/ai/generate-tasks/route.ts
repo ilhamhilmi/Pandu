@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
-import { generateDailyTasks } from "@/lib/ai/generate";
+import { generateDailyTasksBatch } from "@/lib/ai/generate";
 
-export async function POST() {
+const DAYS_PER_BATCH = 7;
+
+export async function POST(request: Request) {
   try {
     // 1. Authenticate user
     const supabase = await createClient();
@@ -27,10 +29,45 @@ export async function POST() {
       );
     }
 
-    // 3. Check if daily tasks already exist — if so, delete them
-    await prisma.dailyTask.deleteMany({
-      where: { userId: user.id },
-    });
+    // 3. Parse optional startDay from request body
+    let startDay = 1;
+    try {
+      const body = await request.json();
+      if (body?.startDay && typeof body.startDay === "number") {
+        startDay = body.startDay;
+      }
+    } catch {
+      // No body or invalid JSON — default to startDay = 1
+    }
+
+    const totalDays = roadmap.targetDays;
+
+    // Validate startDay
+    if (startDay < 1 || startDay > totalDays) {
+      return NextResponse.json(
+        { error: `startDay harus antara 1 dan ${totalDays}` },
+        { status: 400 }
+      );
+    }
+
+    // 4. If startDay === 1, delete all existing tasks (fresh start / re-onboarding)
+    //    If startDay > 1, only delete tasks for the days we're about to generate
+    //    (to avoid duplicates if user clicks the button twice)
+    const batchEnd = Math.min(startDay + DAYS_PER_BATCH - 1, totalDays);
+
+    if (startDay === 1) {
+      await prisma.dailyTask.deleteMany({
+        where: { userId: user.id },
+      });
+    } else {
+      // Delete only tasks in the range [startDay, batchEnd] to avoid duplicates
+      await prisma.dailyTask.deleteMany({
+        where: {
+          userId: user.id,
+          day: { gte: startDay, lte: batchEnd },
+        },
+      });
+    }
 
     const phases = roadmap.phases as Array<{
       title: string;
@@ -40,8 +77,16 @@ export async function POST() {
       duration: string;
     }>;
 
-    // 4. Generate tasks for all days
-    const allDailyTasks: Array<{
+    // 5. Generate daily tasks for this batch (7 days)
+    const daysToGenerate = Math.min(DAYS_PER_BATCH, totalDays - startDay + 1);
+    const taskBatches = await generateDailyTasksBatch(
+      phases,
+      startDay,
+      daysToGenerate,
+      totalDays
+    );
+
+    const newDailyTasks: Array<{
       userId: string;
       day: number;
       tasks: Array<{
@@ -49,42 +94,24 @@ export async function POST() {
         duration_minutes: number;
         resources: Array<{ type: "video" | "article"; title: string; url: string }>;
       }>;
-    }> = [];
+    }> = taskBatches.map((batch) => ({
+      userId: user.id,
+      day: batch.day,
+      tasks: batch.tasks.map((t) => ({
+        title: t.title,
+        duration_minutes: t.duration_minutes,
+        resources: t.resources.map((r) => ({
+          type: r.type as "video" | "article",
+          title: r.title,
+          url: r.url,
+        })),
+      })),
+    }));
 
-    // Generate tasks in batches to avoid too many concurrent API calls
-    const BATCH_SIZE = 5;
-    const totalDays = roadmap.targetDays;
-
-    for (let batchStart = 1; batchStart <= totalDays; batchStart += BATCH_SIZE) {
-      const batchEnd = Math.min(batchStart + BATCH_SIZE - 1, totalDays);
-      const batchPromises = [];
-
-      for (let day = batchStart; day <= batchEnd; day++) {
-        batchPromises.push(
-          generateDailyTasks(phases, day, totalDays).then((tasks) => ({
-            userId: user.id,
-            day,
-            tasks: tasks.map((t) => ({
-              title: t.title,
-              duration_minutes: t.duration_minutes,
-              resources: t.resources.map((r) => ({
-                type: r.type as "video" | "article",
-                title: r.title,
-                url: r.url,
-              })),
-            })),
-          }))
-        );
-      }
-
-      const batchResults = await Promise.all(batchPromises);
-      allDailyTasks.push(...batchResults);
-    }
-
-    // 5. Save all daily tasks to database
-    if (allDailyTasks.length > 0) {
+    // 6. Save new daily tasks to database
+    if (newDailyTasks.length > 0) {
       await prisma.dailyTask.createMany({
-        data: allDailyTasks,
+        data: newDailyTasks,
       });
     }
 
@@ -93,7 +120,10 @@ export async function POST() {
         success: true,
         data: {
           totalDays,
-          generatedCount: allDailyTasks.length,
+          startDay,
+          endDay: batchEnd,
+          generatedCount: newDailyTasks.length,
+          hasMore: batchEnd < totalDays,
         },
       },
       { status: 200 }

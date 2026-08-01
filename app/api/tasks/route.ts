@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     // 1. Authenticate user
     const supabase = await createClient();
@@ -14,53 +14,31 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // 2. Get day from query params
-    const url = new URL(request.url);
-    const day = parseInt(url.searchParams.get("day") || "1");
-
-    // 3. Get tasks for this day
-    const dailyTask = await prisma.dailyTask.findUnique({
-      where: {
-        userId_day: {
-          userId: user.id,
-          day,
-        },
-      },
+    // 2. Get ALL daily tasks for the user, sorted by day
+    const allTasks = await prisma.dailyTask.findMany({
+      where: { userId: user.id },
+      orderBy: { day: "asc" },
     });
 
-    if (!dailyTask) {
-      return NextResponse.json(
-        { error: "Tasks untuk hari ini belum tersedia" },
-        { status: 404 }
-      );
-    }
-
-    // 4. Check if this day is accessible (day 1 is always accessible, others accessible after createdAt + (day-1) days)
-    const now = new Date();
-    const createdAt = new Date(dailyTask.createdAt);
-    const unlockDate = new Date(createdAt);
-    unlockDate.setDate(unlockDate.getDate() + (day - 1));
-    unlockDate.setHours(0, 0, 0, 0);
-
-    const isAccessible = day === 1 || now >= unlockDate;
-
-    // 5. Get user's roadmap for context
+    // 3. Get user's roadmap for targetDays
     const roadmap = await prisma.roadmap.findUnique({
       where: { userId: user.id },
     });
 
     const targetDays = roadmap?.targetDays || 30;
 
+    // 4. Return all tasks as array
+    const tasksByDay = allTasks.map((dailyTask) => ({
+      day: dailyTask.day,
+      tasks: dailyTask.tasks,
+    }));
+
     return NextResponse.json(
       {
         success: true,
         data: {
-          day,
-          tasks: dailyTask.tasks,
-          isAccessible,
-          unlockDate: unlockDate.toISOString(),
+          tasksByDay,
           targetDays,
-          createdAt: dailyTask.createdAt,
         },
       },
       { status: 200 }
@@ -143,7 +121,7 @@ export async function PATCH(request: Request) {
         },
       },
       data: {
-        tasks: tasks as any,
+        tasks: tasks as unknown as import("@prisma/client").Prisma.InputJsonValue,
       },
     });
 

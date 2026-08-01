@@ -11,13 +11,17 @@ import {
   FiYoutube,
   FiExternalLink,
   FiLock,
-  FiRefreshCw,
 } from "react-icons/fi";
 import {
   SkeletonStatsGrid,
   SkeletonTodoList,
-  SkeletonCard,
+  SkeletonPageHeader,
 } from "@/components/ui/skeleton";
+import PageHeader from "@/components/dashboard/page-header";
+import ErrorState from "@/components/dashboard/error-state";
+import EmptyState from "@/components/dashboard/empty-state";
+import StatCard from "@/components/dashboard/stat-card";
+import ProgressBar from "@/components/dashboard/progress-bar";
 
 interface TaskResource {
   type: "video" | "article";
@@ -32,11 +36,17 @@ interface TaskItem {
   completed?: boolean;
 }
 
+interface DayTasks {
+  day: number;
+  tasks: TaskItem[];
+}
+
 interface ProgressData {
   hasPreference: boolean;
   hasRoadmap: boolean;
   currentDay: number;
   targetDays: number;
+  lastGeneratedDay: number;
   totalTasks: number;
   totalCompleted: number;
   progressPercent: number;
@@ -44,22 +54,13 @@ interface ProgressData {
   goal: string | null;
 }
 
-interface TasksData {
-  day: number;
-  tasks: TaskItem[];
-  isAccessible: boolean;
-  unlockDate: string;
-  targetDays: number;
-}
-
 export default function DashboardPage() {
-  const [todos, setTodos] = useState<TaskItem[]>([]);
+  const [allDayTasks, setAllDayTasks] = useState<DayTasks[]>([]);
   const [progress, setProgress] = useState<ProgressData | null>(null);
-  const [tasksData, setTasksData] = useState<TasksData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentDay, setCurrentDay] = useState(1);
-  const [updatingTask, setUpdatingTask] = useState<number | null>(null);
+  const [updatingTask, setUpdatingTask] = useState<string | null>(null);
+  const [generatingNext, setGeneratingNext] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -74,62 +75,117 @@ export default function DashboardPage() {
       if (progressRes.ok) {
         const progressData = await progressRes.json();
         setProgress(progressData.data);
-        setCurrentDay(progressData.data.currentDay);
       }
 
-      // Fetch tasks for current day
-      const day = progress?.currentDay || 1;
-      const tasksRes = await fetch(`/api/tasks?day=${day}`);
+      // Fetch ALL tasks
+      const tasksRes = await fetch("/api/tasks");
       if (tasksRes.ok) {
         const tasksData = await tasksRes.json();
-        setTasksData(tasksData.data);
-        setTodos(tasksData.data.tasks);
+        setAllDayTasks(tasksData.data.tasksByDay);
       }
-    } catch (err) {
+    } catch {
       setError("Gagal memuat data");
     } finally {
       setLoading(false);
     }
   }
 
-  async function toggleTodo(index: number) {
-    if (!tasksData) return;
-    setUpdatingTask(index);
+  async function handleGenerateNextBatch() {
+    if (!progress || generatingNext) return;
 
-    const newCompleted = !todos[index].completed;
+    const nextStartDay = (progress.lastGeneratedDay || 0) + 1;
+    if (nextStartDay > progress.targetDays) return;
+
+    setGeneratingNext(true);
+    try {
+      const res = await fetch("/api/ai/generate-tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ startDay: nextStartDay }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "Gagal generate fase berikutnya");
+      } else {
+        await fetchData();
+      }
+    } catch {
+      setError("Gagal generate fase berikutnya");
+    } finally {
+      setGeneratingNext(false);
+    }
+  }
+
+  async function toggleTodo(day: number, taskIndex: number) {
+    const taskKey = `${day}-${taskIndex}`;
+    setUpdatingTask(taskKey);
+
+    // Find the day's tasks
+    const dayData = allDayTasks.find((d) => d.day === day);
+    if (!dayData) return;
+
+    const newCompleted = !dayData.tasks[taskIndex].completed;
 
     // Optimistic update
-    const updatedTodos = todos.map((t, i) =>
-      i === index ? { ...t, completed: newCompleted } : t
+    setAllDayTasks((prev) =>
+      prev.map((d) =>
+        d.day === day
+          ? {
+              ...d,
+              tasks: d.tasks.map((t, i) =>
+                i === taskIndex ? { ...t, completed: newCompleted } : t
+              ),
+            }
+          : d
+      )
     );
-    setTodos(updatedTodos);
 
     try {
       const res = await fetch("/api/tasks", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          day: tasksData.day,
-          taskIndex: index,
+          day,
+          taskIndex,
           completed: newCompleted,
         }),
       });
 
       if (!res.ok) {
         // Revert on error
-        setTodos(todos);
+        await fetchData();
+      } else {
+        // Refresh progress to update stats
+        const progressRes = await fetch("/api/user/progress");
+        if (progressRes.ok) {
+          const progressData = await progressRes.json();
+          setProgress(progressData.data);
+        }
       }
     } catch {
-      setTodos(todos);
+      await fetchData();
     } finally {
       setUpdatingTask(null);
     }
   }
 
-  const completedCount = todos.filter((t) => t.completed).length;
-  const totalCount = todos.length;
-  const todoProgressPercent =
-    totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  // Check if a day is accessible (day 1 always accessible, others only if previous day is fully completed)
+  function isDayAccessible(day: number): boolean {
+    if (day === 1) return true;
+
+    const prevDay = allDayTasks.find((d) => d.day === day - 1);
+    if (!prevDay) return false;
+
+    return prevDay.tasks.length > 0 && prevDay.tasks.every((t) => t.completed);
+  }
+
+  // Check if ALL generated days are fully completed (required to unlock next phase)
+  const allGeneratedDaysCompleted =
+    allDayTasks.length > 0 &&
+    allDayTasks.every(
+      (d) => d.tasks.length > 0 && d.tasks.every((t) => t.completed)
+    );
 
   // Get today's date in Indonesian
   const today = new Date();
@@ -164,10 +220,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <div className="mb-6">
-          <div className="h-8 w-64 bg-muted rounded animate-pulse" />
-          <div className="h-4 w-48 bg-muted rounded animate-pulse mt-2" />
-        </div>
+        <SkeletonPageHeader titleWidth="w-64" descriptionWidth="w-48" />
         <SkeletonStatsGrid />
         <div className="mt-6">
           <SkeletonTodoList />
@@ -180,18 +233,8 @@ export default function DashboardPage() {
   if (error) {
     return (
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <div className="bg-white rounded-xl border border-border p-8 text-center">
-          <p className="font-inter text-sm text-muted-foreground mb-4">
-            {error}
-          </p>
-          <button
-            onClick={fetchData}
-            className="font-inter inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-hover transition-colors cursor-pointer"
-          >
-            <FiRefreshCw className="h-4 w-4" />
-            Coba Lagi
-          </button>
-        </div>
+        <PageHeader title="Dashboard" />
+        <ErrorState message={error} onRetry={fetchData} />
       </div>
     );
   }
@@ -200,36 +243,14 @@ export default function DashboardPage() {
   if (!progress?.hasPreference) {
     return (
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {/* Greeting */}
-        <div className="mb-6">
-          <h1 className="font-inter text-2xl sm:text-3xl font-bold text-foreground">
-            Halo! Selamat datang 👋
-          </h1>
-          <p className="font-inter text-sm text-muted-foreground mt-1">
-            {dateString}
-          </p>
-        </div>
-
-        {/* Empty State */}
-        <div className="bg-white rounded-xl border border-border p-8 sm:p-12 text-center">
-          <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
-            <FiTrendingUp className="h-10 w-10 text-primary" />
-          </div>
-          <h2 className="font-inter text-xl font-bold text-foreground mb-2">
-            Mulai Petualangan Belajar Kamu!
-          </h2>
-          <p className="font-inter text-sm text-muted-foreground mb-6 max-w-md mx-auto">
-            Atur preferensi belajar kamu, dan biarkan AI membuatkan roadmap
-            personalized serta to-do harian yang sesuai dengan goal kamu.
-          </p>
-          <Link
-            href="/onboarding"
-            className="font-inter inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-lg text-sm font-semibold hover:bg-primary-hover transition-colors"
-          >
-            Mulai Sekarang
-            <FiArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
+        <PageHeader title="Halo! Selamat datang 👋" description={dateString} />
+        <EmptyState
+          icon={<FiTrendingUp className="h-10 w-10 text-primary" />}
+          title="Mulai Petualangan Belajar Kamu!"
+          description="Atur preferensi belajar kamu, dan biarkan AI membuatkan roadmap personalized serta to-do harian yang sesuai dengan goal kamu."
+          actionLabel="Mulai Sekarang"
+          actionHref="/onboarding"
+        />
       </div>
     );
   }
@@ -238,45 +259,25 @@ export default function DashboardPage() {
   if (!progress?.hasRoadmap) {
     return (
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <div className="mb-6">
-          <h1 className="font-inter text-2xl sm:text-3xl font-bold text-foreground">
-            Halo! Selamat datang 👋
-          </h1>
-          <p className="font-inter text-sm text-muted-foreground mt-1">
-            {dateString}
-          </p>
-        </div>
-
-        <div className="bg-white rounded-xl border border-border p-8 sm:p-12 text-center">
-          <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
-            <FiTrendingUp className="h-10 w-10 text-primary" />
-          </div>
-          <h2 className="font-inter text-xl font-bold text-foreground mb-2">
-            Roadmap Belum Dibuat
-          </h2>
-          <p className="font-inter text-sm text-muted-foreground mb-6 max-w-md mx-auto">
-            Preferensi kamu sudah disimpan. Sekarang saatnya AI membuatkan
-            roadmap belajar personalized untuk kamu!
-          </p>
-          <button
-            onClick={async () => {
-              setLoading(true);
-              try {
-                await fetch("/api/ai/generate-roadmap", { method: "POST" });
-                await fetch("/api/ai/generate-tasks", { method: "POST" });
-                await fetchData();
-              } catch {
-                setError("Gagal generate roadmap");
-              } finally {
-                setLoading(false);
-              }
-            }}
-            className="font-inter inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-lg text-sm font-semibold hover:bg-primary-hover transition-colors cursor-pointer"
-          >
-            Generate Roadmap Sekarang
-            <FiArrowRight className="h-4 w-4" />
-          </button>
-        </div>
+        <PageHeader title="Halo! Selamat datang 👋" description={dateString} />
+        <EmptyState
+          icon={<FiTrendingUp className="h-10 w-10 text-primary" />}
+          title="Roadmap Belum Dibuat"
+          description="Preferensi kamu sudah disimpan. Sekarang saatnya AI membuatkan roadmap belajar personalized untuk kamu!"
+          actionLabel="Generate Roadmap Sekarang"
+          onAction={async () => {
+            setLoading(true);
+            try {
+              await fetch("/api/ai/generate-roadmap", { method: "POST" });
+              await fetch("/api/ai/generate-tasks", { method: "POST" });
+              await fetchData();
+            } catch {
+              setError("Gagal generate roadmap");
+            } finally {
+              setLoading(false);
+            }
+          }}
+        />
       </div>
     );
   }
@@ -285,237 +286,259 @@ export default function DashboardPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       {/* Greeting */}
-      <div className="mb-6">
-        <h1 className="font-inter text-2xl sm:text-3xl font-bold text-foreground">
-          Halo! Selamat belajar 👋
-        </h1>
-        <p className="font-inter text-sm text-muted-foreground mt-1">
-          {dateString}
-        </p>
-      </div>
+      <PageHeader title="Halo! Selamat belajar 👋" description={dateString} />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-        {/* Streak */}
-        <div className="bg-white rounded-xl border border-border p-4 sm:p-5">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-orange-100 flex items-center justify-center">
-              <FiZap className="h-5 w-5 text-orange-500" />
-            </div>
-            <div>
-              <p className="font-inter text-xs text-muted-foreground">
-                Streak
-              </p>
-              <p className="font-inter text-xl sm:text-2xl font-bold text-foreground">
-                {progress?.streak || 0}
-                <span className="text-xs font-normal text-muted-foreground ml-1">
-                  hari
-                </span>
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Task Selesai */}
-        <div className="bg-white rounded-xl border border-border p-4 sm:p-5">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-              <FiCheckSquare className="h-5 w-5 text-emerald-500" />
-            </div>
-            <div>
-              <p className="font-inter text-xs text-muted-foreground">
-                Task Selesai
-              </p>
-              <p className="font-inter text-xl sm:text-2xl font-bold text-foreground">
-                {progress?.totalCompleted || 0}
-                <span className="text-xs font-normal text-muted-foreground ml-1">
-                  task
-                </span>
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Hari ke- */}
-        <div className="bg-white rounded-xl border border-border p-4 sm:p-5">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
-              <FiCalendar className="h-5 w-5 text-blue-500" />
-            </div>
-            <div>
-              <p className="font-inter text-xs text-muted-foreground">
-                Hari ke-
-              </p>
-              <p className="font-inter text-xl sm:text-2xl font-bold text-foreground">
-                {currentDay}
-                <span className="text-xs font-normal text-muted-foreground ml-1">
-                  dari {progress?.targetDays || 30}
-                </span>
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Progress */}
-        <div className="bg-white rounded-xl border border-border p-4 sm:p-5">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-              <FiTrendingUp className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="font-inter text-xs text-muted-foreground">
-                Progress
-              </p>
-              <p className="font-inter text-xl sm:text-2xl font-bold text-foreground">
-                {progress?.progressPercent || 0}%
-                <span className="text-xs font-normal text-muted-foreground ml-1">
-                  selesai
-                </span>
-              </p>
-            </div>
-          </div>
-        </div>
+        <StatCard
+          icon={<FiZap className="h-5 w-5" />}
+          label="Streak"
+          value={String(progress?.streak || 0)}
+          unit="hari"
+          color="text-orange-500"
+          bg="bg-orange-100"
+        />
+        <StatCard
+          icon={<FiCheckSquare className="h-5 w-5" />}
+          label="Task Selesai"
+          value={String(progress?.totalCompleted || 0)}
+          unit="task"
+          color="text-emerald-500"
+          bg="bg-emerald-100"
+        />
+        <StatCard
+          icon={<FiCalendar className="h-5 w-5" />}
+          label="Hari ke-"
+          value={String(progress?.currentDay || 1)}
+          unit={`dari ${progress?.targetDays || 30}`}
+          color="text-blue-500"
+          bg="bg-blue-100"
+        />
+        <StatCard
+          icon={<FiTrendingUp className="h-5 w-5" />}
+          label="Progress"
+          value={`${progress?.progressPercent || 0}%`}
+          unit="selesai"
+          color="text-primary"
+          bg="bg-primary/10"
+        />
       </div>
 
       {/* Progress Bar Keseluruhan */}
-      <div className="bg-white rounded-xl border border-border p-4 sm:p-5 mb-6 sm:mb-8">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-inter text-sm font-semibold text-foreground">
-            Progress Keseluruhan
-          </h2>
-          <span className="font-inter text-sm font-medium text-primary">
-            {progress?.progressPercent || 0}%
-          </span>
-        </div>
-        <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden">
-          <div
-            className="h-full bg-primary rounded-full transition-all duration-500"
-            style={{ width: `${progress?.progressPercent || 0}%` }}
-          />
-        </div>
-      </div>
+      <ProgressBar
+        percent={progress?.progressPercent || 0}
+        label="Progress Keseluruhan"
+      />
 
-      {/* To-Do Hari Ini */}
-      <div className="bg-white rounded-xl border border-border p-4 sm:p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-inter text-base font-semibold text-foreground">
-            To-Do Hari Ini (Hari ke-{currentDay})
-          </h2>
-          <span className="font-inter text-xs text-muted-foreground">
-            {completedCount}/{totalCount} selesai
-          </span>
-        </div>
+      {/* All Day Cards */}
+      <div className="space-y-4">
+        {allDayTasks.map((dayData) => {
+          const accessible = isDayAccessible(dayData.day);
+          const dayCompleted = dayData.tasks.filter((t) => t.completed).length;
+          const dayTotal = dayData.tasks.length;
+          const isCurrentDay = progress?.currentDay === dayData.day;
 
-        {/* Day is locked */}
-        {tasksData && !tasksData.isAccessible && (
-          <div className="text-center py-12">
-            <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-              <FiLock className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <h3 className="font-inter text-base font-semibold text-foreground mb-1">
-              Hari ke-{currentDay} Belum Tersedia
-            </h3>
-            <p className="font-inter text-sm text-muted-foreground">
-              Task untuk hari ini akan terbuka pada jam 00:00
-            </p>
-          </div>
-        )}
+          return (
+            <div
+              key={dayData.day}
+              className={`bg-white rounded-xl border p-4 sm:p-5 ${
+                isCurrentDay
+                  ? "border-primary ring-1 ring-primary/20"
+                  : "border-border"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-inter text-base font-semibold text-foreground">
+                  Hari ke-{dayData.day}
+                  {isCurrentDay && (
+                    <span className="ml-2 text-xs font-normal text-primary">
+                      (Sedang berjalan)
+                    </span>
+                  )}
+                </h2>
+                <span className="font-inter text-xs text-muted-foreground">
+                  {dayCompleted}/{dayTotal} selesai
+                </span>
+              </div>
 
-        {/* No tasks yet */}
-        {tasksData && tasksData.isAccessible && todos.length === 0 && (
-          <div className="text-center py-12">
-            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-              <FiCheckSquare className="h-8 w-8 text-primary" />
-            </div>
-            <h3 className="font-inter text-base font-semibold text-foreground mb-1">
-              Belum ada task untuk hari ini
-            </h3>
-            <p className="font-inter text-sm text-muted-foreground">
-              Selamat menikmati hari libur! 🎉
-            </p>
-          </div>
-        )}
+              {/* Day is locked */}
+              {!accessible && (
+                <div className="text-center py-8">
+                  <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+                    <FiLock className="h-7 w-7 text-muted-foreground" />
+                  </div>
+                  <h3 className="font-inter text-sm font-semibold text-foreground mb-1">
+                    Selesaikan hari ke-{dayData.day - 1} dulu
+                  </h3>
+                  <p className="font-inter text-xs text-muted-foreground">
+                    Task untuk hari ini akan terbuka setelah semua task hari
+                    sebelumnya selesai
+                  </p>
+                </div>
+              )}
 
-        {/* Todo List */}
-        {tasksData && tasksData.isAccessible && todos.length > 0 && (
-          <div className="space-y-3">
-            {todos.map((todo, index) => (
-              <div
-                key={index}
-                className={`rounded-lg border p-4 transition-all ${
-                  todo.completed
-                    ? "border-primary/20 bg-primary/5"
-                    : "border-border bg-white hover:border-primary/30"
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <button
-                    onClick={() => toggleTodo(index)}
-                    disabled={updatingTask === index}
-                    className={`mt-0.5 h-5 w-5 shrink-0 rounded-md border-2 flex items-center justify-center transition-all cursor-pointer disabled:opacity-50 ${
-                      todo.completed
-                        ? "bg-primary border-primary"
-                        : "border-muted-foreground/30 hover:border-primary"
-                    }`}
-                  >
-                    {todo.completed && (
-                      <svg
-                        className="h-3 w-3 text-primary-foreground"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={3}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                    )}
-                  </button>
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className={`font-inter text-sm font-medium ${
+              {/* Todo List */}
+              {accessible && dayData.tasks.length > 0 && (
+                <div className="space-y-3">
+                  {dayData.tasks.map((todo, index) => (
+                    <div
+                      key={index}
+                      className={`rounded-lg border p-4 transition-all ${
                         todo.completed
-                          ? "text-muted-foreground line-through"
-                          : "text-foreground"
+                          ? "border-primary/20 bg-primary/5"
+                          : "border-border bg-white hover:border-primary/30"
                       }`}
                     >
-                      {todo.title}
-                    </p>
-                    <p className="font-inter text-xs text-muted-foreground mt-0.5">
-                      ~{todo.duration_minutes} menit
-                    </p>
-
-                    {/* Resources */}
-                    {todo.resources && todo.resources.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {todo.resources.map((resource, idx) => (
-                          <a
-                            key={idx}
-                            href={resource.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="font-inter inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
+                      <div className="flex items-start gap-3">
+                        <button
+                          onClick={() => toggleTodo(dayData.day, index)}
+                          disabled={updatingTask === `${dayData.day}-${index}`}
+                          className={`mt-0.5 h-5 w-5 shrink-0 rounded-md border-2 flex items-center justify-center transition-all cursor-pointer disabled:opacity-50 ${
+                            todo.completed
+                              ? "bg-primary border-primary"
+                              : "border-muted-foreground/30 hover:border-primary"
+                          }`}
+                        >
+                          {todo.completed && (
+                            <svg
+                              className="h-3 w-3 text-primary-foreground"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={3}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                          )}
+                        </button>
+                        <div className="flex-1 min-w-0">
+                          <p
+                            className={`font-inter text-sm font-medium ${
+                              todo.completed
+                                ? "text-muted-foreground line-through"
+                                : "text-foreground"
+                            }`}
                           >
-                            {resource.type === "video" ? (
-                              <FiYoutube className="h-3 w-3 text-red-500" />
-                            ) : (
-                              <FiExternalLink className="h-3 w-3 text-blue-500" />
-                            )}
-                            {resource.title}
-                          </a>
-                        ))}
+                            {todo.title}
+                          </p>
+                          <p className="font-inter text-xs text-muted-foreground mt-0.5">
+                            ~{todo.duration_minutes} menit
+                          </p>
+
+                          {/* Resources */}
+                          {todo.resources && todo.resources.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {todo.resources.map((resource, idx) => (
+                                <a
+                                  key={idx}
+                                  href={resource.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="font-inter inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
+                                >
+                                  {resource.type === "video" ? (
+                                    <FiYoutube className="h-3 w-3 text-red-500" />
+                                  ) : (
+                                    <FiExternalLink className="h-3 w-3 text-blue-500" />
+                                  )}
+                                  {resource.title}
+                                </a>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
-            ))}
+              )}
+
+              {/* Day completed badge */}
+              {accessible &&
+                dayTotal > 0 &&
+                dayCompleted === dayTotal && (
+                  <div className="mt-3 flex items-center gap-2 text-sm text-emerald-600">
+                    <FiCheckSquare className="h-4 w-4" />
+                    <span className="font-inter font-medium">
+                      Hari selesai! 🎉
+                    </span>
+                  </div>
+                )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Mulai Fase Berikutnya */}
+      {progress &&
+        progress.lastGeneratedDay > 0 &&
+        progress.lastGeneratedDay < progress.targetDays && (
+          <div className="mt-6 bg-white rounded-xl border border-border p-5 sm:p-6 text-center">
+            <div
+              className={`h-14 w-14 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                allGeneratedDaysCompleted
+                  ? "bg-primary/10"
+                  : "bg-muted"
+              }`}
+            >
+              {allGeneratedDaysCompleted ? (
+                <FiArrowRight className="h-7 w-7 text-primary" />
+              ) : (
+                <FiLock className="h-7 w-7 text-muted-foreground" />
+              )}
+            </div>
+            <h3 className="font-inter text-base font-semibold text-foreground mb-1">
+              {allGeneratedDaysCompleted
+                ? "Fase Berikutnya Siap!"
+                : "Fase Berikutnya Terkunci"}
+            </h3>
+            <p className="font-inter text-sm text-muted-foreground mb-4 max-w-md mx-auto">
+              {allGeneratedDaysCompleted ? (
+                <>
+                  Kamu sudah punya task sampai hari ke-
+                  {progress.lastGeneratedDay}. Generate task untuk hari ke-
+                  {progress.lastGeneratedDay + 1}
+                  {Math.min(
+                    progress.lastGeneratedDay + 7,
+                    progress.targetDays
+                  ) >
+                    progress.lastGeneratedDay + 1 &&
+                    ` sampai hari ke-${Math.min(
+                      progress.lastGeneratedDay + 7,
+                      progress.targetDays
+                    )}`}{" "}
+                  sekarang.
+                </>
+              ) : (
+                <>
+                  Selesaikan semua task dari hari ke-1 sampai hari ke-
+                  {progress.lastGeneratedDay} untuk membuka fase berikutnya.
+                </>
+              )}
+            </p>
+            <button
+              onClick={handleGenerateNextBatch}
+              disabled={generatingNext || !allGeneratedDaysCompleted}
+              className="font-inter inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-lg text-sm font-semibold hover:bg-primary-hover transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {generatingNext ? (
+                <>
+                  <FiArrowRight className="h-4 w-4 animate-spin" />
+                  Menggenerate...
+                </>
+              ) : (
+                <>
+                  Mulai Fase Berikutnya
+                  <FiArrowRight className="h-4 w-4" />
+                </>
+              )}
+            </button>
           </div>
         )}
-      </div>
 
       {/* Quick Actions */}
       <div className="mt-6 flex flex-col sm:flex-row gap-3">
@@ -523,14 +546,7 @@ export default function DashboardPage() {
           href="/dashboard/roadmap"
           className="font-inter flex items-center justify-center gap-2 bg-white border border-border rounded-xl px-5 py-3 text-sm font-medium text-foreground hover:bg-muted transition-colors"
         >
-          Lihat Roadmap
-          <FiArrowRight className="h-4 w-4" />
-        </Link>
-        <Link
-          href="/dashboard/progress"
-          className="font-inter flex items-center justify-center gap-2 bg-white border border-border rounded-xl px-5 py-3 text-sm font-medium text-foreground hover:bg-muted transition-colors"
-        >
-          Lihat Progress
+          Lihat Roadmap & Progress
           <FiArrowRight className="h-4 w-4" />
         </Link>
       </div>

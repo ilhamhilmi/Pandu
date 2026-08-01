@@ -30,34 +30,43 @@ export async function GET() {
       orderBy: { day: "asc" },
     });
 
-    // 5. Calculate current day based on when roadmap was created
-    let currentDay = 1;
+    // 5. Calculate last generated day (max day in DB)
+    const lastGeneratedDay =
+      allTasks.length > 0 ? Math.max(...allTasks.map((t) => t.day)) : 0;
+
+    // 6. Calculate progress based on task completion (not timezone)
     let totalCompleted = 0;
     let totalTasks = 0;
+    let currentDay = 1; // First day that is not fully completed
     let streak = 0;
 
     if (allTasks.length > 0) {
-      // Calculate current day
-      const createdAt = new Date(allTasks[0].createdAt);
-      const now = new Date();
-      const diffTime = Math.abs(now.getTime() - createdAt.getTime());
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      currentDay = Math.min(diffDays + 1, roadmap?.targetDays || 30);
-
-      // Calculate total completed tasks
+      // Calculate totals and find current day (first incomplete day)
       for (const dailyTask of allTasks) {
         const tasks = dailyTask.tasks as Array<{ completed?: boolean }>;
-        for (const task of tasks) {
-          totalTasks++;
-          if (task.completed) {
-            totalCompleted++;
+        const dayCompleted = tasks.filter((t) => t.completed).length;
+        const dayTotal = tasks.length;
+
+        totalTasks += dayTotal;
+        totalCompleted += dayCompleted;
+
+        // currentDay = first day where not all tasks are completed
+        if (currentDay === dailyTask.day && dayCompleted < dayTotal && dayTotal > 0) {
+          currentDay = dailyTask.day;
+        } else if (dayCompleted >= dayTotal && dayTotal > 0) {
+          // This day is fully completed, move to next
+          if (currentDay === dailyTask.day) {
+            currentDay = dailyTask.day + 1;
           }
         }
       }
 
-      // Calculate streak (consecutive days with all tasks completed, going backwards)
-      for (let i = currentDay - 1; i >= 0; i--) {
-        const dayTasks = allTasks.find((t) => t.day === i + 1);
+      // Cap currentDay at targetDays
+      currentDay = Math.min(currentDay, roadmap?.targetDays || 30);
+
+      // Calculate streak (consecutive days with all tasks completed, going backwards from currentDay)
+      for (let i = currentDay - 1; i >= 1; i--) {
+        const dayTasks = allTasks.find((t) => t.day === i);
         if (dayTasks) {
           const tasks = dayTasks.tasks as Array<{ completed?: boolean }>;
           const allCompleted = tasks.every((t) => t.completed);
@@ -83,6 +92,7 @@ export async function GET() {
           hasRoadmap: !!roadmap,
           currentDay,
           targetDays: roadmap?.targetDays || 30,
+          lastGeneratedDay,
           totalTasks,
           totalCompleted,
           progressPercent,

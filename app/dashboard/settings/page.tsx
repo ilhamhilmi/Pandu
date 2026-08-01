@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   FiUser,
@@ -12,11 +11,12 @@ import {
   FiClock,
   FiLogOut,
   FiChevronRight,
-  FiRefreshCw,
 } from "react-icons/fi";
 import { supabase } from "@/lib/supabase/client";
 import ConfirmationModal from "@/components/dashboard/confirmation-modal";
-import { SkeletonCard } from "@/components/ui/skeleton";
+import PageHeader from "@/components/dashboard/page-header";
+import ErrorState from "@/components/dashboard/error-state";
+import { SkeletonCard, SkeletonPageHeader } from "@/components/ui/skeleton";
 
 interface PreferenceData {
   goal: string;
@@ -85,10 +85,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <div className="mb-6">
-          <div className="h-8 w-48 bg-muted rounded animate-pulse" />
-          <div className="h-4 w-32 bg-muted rounded animate-pulse mt-2" />
-        </div>
+        <SkeletonPageHeader titleWidth="w-48" descriptionWidth="w-32" />
         <div className="space-y-4">
           <SkeletonCard />
           <SkeletonCard />
@@ -102,18 +99,8 @@ export default function SettingsPage() {
   if (error) {
     return (
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <div className="bg-white rounded-xl border border-border p-8 text-center">
-          <p className="font-inter text-sm text-muted-foreground mb-4">
-            {error}
-          </p>
-          <button
-            onClick={fetchData}
-            className="font-inter inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-hover transition-colors cursor-pointer"
-          >
-            <FiRefreshCw className="h-4 w-4" />
-            Coba Lagi
-          </button>
-        </div>
+        <PageHeader title="Pengaturan ⚙️" />
+        <ErrorState message={error} onRetry={fetchData} />
       </div>
     );
   }
@@ -126,14 +113,10 @@ export default function SettingsPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="font-inter text-2xl sm:text-3xl font-bold text-foreground">
-          Pengaturan ⚙️
-        </h1>
-        <p className="font-inter text-sm text-muted-foreground mt-1">
-          Kelola profil dan preferensi belajar kamu
-        </p>
-      </div>
+      <PageHeader
+        title="Pengaturan ⚙️"
+        description="Kelola profil dan preferensi belajar kamu"
+      />
 
       {/* Profile Card */}
       <div className="bg-white rounded-xl border border-border p-4 sm:p-5 mb-4">

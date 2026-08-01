@@ -6,16 +6,16 @@ import { usePathname } from "next/navigation";
 import {
   FiHome,
   FiBookOpen,
-  FiBarChart2,
   FiSettings,
   FiLogOut,
   FiZap,
+  FiBook,
 } from "react-icons/fi";
 
 const NAV_ITEMS = [
   { icon: FiHome, label: "Dashboard", href: "/dashboard" },
   { icon: FiBookOpen, label: "Roadmap", href: "/dashboard/roadmap" },
-  { icon: FiBarChart2, label: "Progress", href: "/dashboard/progress" },
+  { icon: FiBook, label: "Perpustakaan", href: "/dashboard/library" },
   { icon: FiSettings, label: "Pengaturan", href: "/dashboard/settings" },
 ];
 

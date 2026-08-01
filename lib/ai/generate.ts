@@ -1,6 +1,6 @@
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
-const GEMINI_API_URL =
-  "https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent";
+const GROQ_API_KEY = process.env.GROQ_API_KEY!;
+const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+const GROQ_MODEL = "llama-3.3-70b-versatile";
 
 interface UserPreference {
   goal: string;
@@ -30,44 +30,69 @@ interface DailyTaskItem {
   resources: TaskResource[];
 }
 
-async function callGeminiAPI(prompt: string): Promise<string> {
-  const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [
-            {
-              text: prompt,
-            },
-          ],
-        },
-      ],
-      generationConfig: {
-        temperature: 0.7,
-        topP: 0.95,
-        topK: 40,
-        maxOutputTokens: 8192,
+interface DailyTaskBatch {
+  day: number;
+  tasks: DailyTaskItem[];
+}
+
+async function callGroqAPI(
+  prompt: string,
+  options?: { maxRetries?: number; maxTokens?: number }
+): Promise<string> {
+  const maxRetries = options?.maxRetries ?? 2;
+  const maxTokens = options?.maxTokens ?? 8192;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const response = await fetch(GROQ_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${GROQ_API_KEY}`,
       },
-    }),
-  });
+      body: JSON.stringify({
+        model: GROQ_MODEL,
+        messages: [
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+        temperature: 0.7,
+        top_p: 0.95,
+        max_tokens: maxTokens,
+      }),
+    });
 
-  if (!response.ok) {
+    if (response.ok) {
+      const data = await response.json();
+      const text = data?.choices?.[0]?.message?.content;
+
+      if (!text) {
+        throw new Error("Groq API returned empty response");
+      }
+
+      return text;
+    }
+
+    // If rate limited (429) and we have retries left, wait and retry
+    if (response.status === 429 && attempt < maxRetries) {
+      const errorText = await response.text();
+      console.warn(
+        `Groq API rate limited (429). Retry ${attempt + 1}/${maxRetries} after delay...`,
+        errorText
+      );
+      // Exponential backoff: 5s, then 10s
+      const delay = 5000 * Math.pow(2, attempt);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      continue;
+    }
+
+    // Non-retryable error or out of retries
     const errorText = await response.text();
-    throw new Error(`Gemini API error (${response.status}): ${errorText}`);
+    throw new Error(`Groq API error (${response.status}): ${errorText}`);
   }
 
-  const data = await response.json();
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-  if (!text) {
-    throw new Error("Gemini API returned empty response");
-  }
-
-  return text;
+  throw new Error("Groq API failed after max retries");
 }
 
 function extractJSON(text: string): string {
@@ -127,7 +152,7 @@ OUTPUT HANYA JSON ARRAY, tanpa markdown, tanpa teks lain. Format:
   }
 ]`;
 
-  const rawText = await callGeminiAPI(prompt);
+  const rawText = await callGroqAPI(prompt);
   const jsonStr = extractJSON(rawText);
   const phases = JSON.parse(jsonStr) as RoadmapPhase[];
 
@@ -154,23 +179,14 @@ ${roadmapSummary}
 Buatlah 2-4 task yang relevan untuk hari ke-${day}. Setiap task harus memiliki:
 - title: Nama task (dalam Bahasa Indonesia, jelas dan spesifik)
 - duration_minutes: Estimasi durasi dalam menit (angka, antara 15-120)
-- resources: Array sumber belajar (minimal 1, maksimal 2) dengan:
-  - type: "video" atau "article"
-  - title: Judul sumber (dalam Bahasa Indonesia)
-  - url: URL sumber belajar
+- resources: Array sumber belajar artikel (minimal 1, maksimal 2) dengan:
+  - type: "article"
+  - title: Judul artikel (dalam Bahasa Indonesia)
+  - url: URL artikel
 
-PENTING - PRIORITAS SUMBER BELAJAR:
-1. Untuk video (type: "video"): Prioritaskan channel YouTube INDONESIA seperti:
-   - Web Programming UNPAS (Sandhika Galih)
-   - Programmer Zaman Now (Eko Kurniawan Khannedy)
-   - Dea Afrizal
-   - Indonesia Belajar
-   - atau channel YouTube Indonesia lainnya yang relevan
-   Gunakan URL format: "https://www.youtube.com/watch?v=contoh"
-
-2. Untuk artikel (type: "article"): Prioritaskan dari:
-   - w3schools.com (https://www.w3schools.com/...)
-   - atau dokumentasi resmi (developer.mozilla.org)
+PRIORITAS SUMBER BELAJAR (HANYA ARTIKEL):
+- w3schools.com (https://www.w3schools.com/...)
+- atau dokumentasi resmi (developer.mozilla.org)
 
 OUTPUT HANYA JSON ARRAY, tanpa markdown, tanpa teks lain. Format:
 [
@@ -178,11 +194,6 @@ OUTPUT HANYA JSON ARRAY, tanpa markdown, tanpa teks lain. Format:
     "title": "Nama Task",
     "duration_minutes": 45,
     "resources": [
-      {
-        "type": "video",
-        "title": "Belajar HTML Dasar - Web Programming UNPAS",
-        "url": "https://www.youtube.com/watch?v=contoh"
-      },
       {
         "type": "article",
         "title": "HTML Dasar - w3schools",
@@ -192,7 +203,7 @@ OUTPUT HANYA JSON ARRAY, tanpa markdown, tanpa teks lain. Format:
   }
 ]`;
 
-  const rawText = await callGeminiAPI(prompt);
+  const rawText = await callGroqAPI(prompt);
   const jsonStr = extractJSON(rawText);
   const tasks = JSON.parse(jsonStr) as DailyTaskItem[];
 
@@ -201,4 +212,89 @@ OUTPUT HANYA JSON ARRAY, tanpa markdown, tanpa teks lain. Format:
     ...task,
     resources: task.resources || [],
   }));
+}
+
+/**
+ * Generate daily tasks for a BATCH of days (default 7 days) in a single API call.
+ * This avoids generating all tasks upfront — instead, tasks are generated on-demand
+ * when the user clicks "Mulai Fase Berikutnya".
+ *
+ * @param roadmap - The roadmap phases
+ * @param startDay - First day to generate (1, 8, 15, ...)
+ * @param daysToGenerate - How many days to generate in this batch (default 7)
+ * @param totalDays - Total target days from the roadmap
+ */
+export async function generateDailyTasksBatch(
+  roadmap: RoadmapPhase[],
+  startDay: number,
+  daysToGenerate: number = 7,
+  totalDays: number
+): Promise<DailyTaskBatch[]> {
+  const roadmapSummary = roadmap
+    .map(
+      (phase) => `${phase.week} - ${phase.title}: ${phase.topics.join(", ")}`
+    )
+    .join("\n");
+
+  const batchEnd = Math.min(startDay + daysToGenerate - 1, totalDays);
+  const dayRange =
+    startDay === batchEnd
+      ? `hari ke-${startDay}`
+      : `hari ke-${startDay} sampai hari ke-${batchEnd}`;
+
+  const prompt = `Kamu adalah seorang mentor programming. Berdasarkan roadmap belajar berikut, buatlah task harian untuk ${dayRange} dari total ${totalDays} hari.
+
+ROADMAP:
+${roadmapSummary}
+
+Buatlah 2-4 task yang relevan untuk SETIAP hari dalam rentang tersebut. Setiap task harus memiliki:
+- title: Nama task (dalam Bahasa Indonesia, jelas dan spesifik)
+- duration_minutes: Estimasi durasi dalam menit (angka, antara 15-120)
+- resources: Array sumber belajar artikel (minimal 1, maksimal 2) dengan:
+  - type: "article"
+  - title: Judul artikel (dalam Bahasa Indonesia)
+  - url: URL artikel
+
+PRIORITAS SUMBER BELAJAR (HANYA ARTIKEL):
+- w3schools.com (https://www.w3schools.com/...)
+- atau dokumentasi resmi (developer.mozilla.org)
+
+OUTPUT HANYA JSON ARRAY, tanpa markdown, tanpa teks lain. Format:
+[
+  {
+    "day": ${startDay},
+    "tasks": [
+      {
+        "title": "Nama Task",
+        "duration_minutes": 45,
+        "resources": [
+          {
+            "type": "article",
+            "title": "HTML Dasar - w3schools",
+            "url": "https://www.w3schools.com/html/"
+          }
+        ]
+      }
+    ]
+  }
+]
+
+Pastikan setiap hari dari ${startDay} sampai ${batchEnd} ada dalam output. Buat progres yang logis mengikuti roadmap.`;
+
+  const rawText = await callGroqAPI(prompt, { maxTokens: 8192 });
+  const jsonStr = extractJSON(rawText);
+  const batchResult = JSON.parse(jsonStr) as DailyTaskBatch[];
+
+  // Ensure each task has a resources array and sort by day
+  const batches = batchResult.map((batch) => ({
+    day: batch.day,
+    tasks: batch.tasks.map((task) => ({
+      ...task,
+      resources: task.resources || [],
+    })),
+  }));
+
+  batches.sort((a, b) => a.day - b.day);
+
+  return batches;
 }
