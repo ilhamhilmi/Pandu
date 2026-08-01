@@ -57,7 +57,22 @@ export default function Login() {
       toast.add({
         title: "Selamat datang kembali"
       })
-      router.push("/")
+
+      // Check if user already has preference data
+      try {
+        const progressRes = await fetch("/api/user/progress");
+        if (progressRes.ok) {
+          const progressData = await progressRes.json();
+          const hasPreference = progressData.data?.hasPreference;
+
+          // Redirect to dashboard if user has data, otherwise onboarding
+          router.push(hasPreference ? "/dashboard" : "/onboarding");
+        } else {
+          router.push("/dashboard");
+        }
+      } catch {
+        router.push("/dashboard");
+      }
     }
   }
 

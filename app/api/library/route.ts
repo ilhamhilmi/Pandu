@@ -9,9 +9,9 @@ import { NextResponse } from "next/server";
 const LIBRARY_VIDEOS = [
   {
     id: "",
-    title: "Belajar HTML Dasar - Web Programming UNPAS",
-    channel: "Web Programming UNPAS",
-    duration: "1:22:45",
+    title: "Apa itu HTML5? | Belajar HTML5",
+    channel: "WPU",
+    duration: "Playlist",
   },
   {
     id: "O5WovXIF-ig",

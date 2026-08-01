@@ -1,11 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
     const { searchParams, origin } = new URL(request.url);
     const code = searchParams.get("code");
-    const next = searchParams.get("next") ?? "/onboarding";
 
     if (code) {
         const cookieStore = await cookies();
@@ -28,7 +28,23 @@ export async function GET(request: Request) {
 
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (!error) {
-            return NextResponse.redirect(`${origin}${next}`);
+            // Get the authenticated user from the session
+            const {
+                data: { user },
+            } = await supabase.auth.getUser();
+
+            if (user) {
+                // Check if user already has a preference saved
+                const preference = await prisma.userPreference.findUnique({
+                    where: { userId: user.id },
+                });
+
+                // Redirect to dashboard if user has data, otherwise onboarding
+                const redirectPath = preference ? "/dashboard" : "/onboarding";
+                return NextResponse.redirect(`${origin}${redirectPath}`);
+            }
+
+            return NextResponse.redirect(`${origin}/dashboard`);
         }
     }
 
