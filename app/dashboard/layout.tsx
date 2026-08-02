@@ -13,6 +13,7 @@ import {
 } from "react-icons/fi";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase/client";
+import ConfirmationModal from "@/components/dashboard/confirmation-modal";
 
 const NAV_ITEMS = [
   { icon: FiHome, label: "Beranda", href: "/dashboard" },
@@ -33,6 +34,7 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -72,7 +74,7 @@ export default function DashboardLayout({
         {/* Logo */}
         <div className="flex items-center gap-2 px-6 py-6 border-b border-border">
           <div className="bg-white flex items-center justify-center">
-            <Image src="/icon/Pandu_Icon.png" alt="Icon"width={25} height={25}/>
+            <Image src="/icon/Pandu_Icon.png" alt="Icon" width={25} height={25} />
           </div>
           <h1 className="font-inter uppercase border rounded-full py-1 px-2.5 text-sm font-semibold border-primary/10 bg-primary/10 text-primary">Ruang Belajar</h1>
         </div>
@@ -119,7 +121,7 @@ export default function DashboardLayout({
 
           {/* Logout Button */}
           <button
-            onClick={handleLogout}
+            onClick={() => setShowLogoutModal(true)}
             className="font-inter flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-all cursor-pointer"
           >
             <FiLogOut className="h-5 w-5 shrink-0" />
@@ -175,6 +177,20 @@ export default function DashboardLayout({
           })}
         </div>
       </nav>
+
+      {/* Confirmation Modal - Logout */}
+      <ConfirmationModal
+        isOpen={showLogoutModal}
+        onConfirm={() => {
+          setShowLogoutModal(false);
+          handleLogout();
+        }}
+        onCancel={() => setShowLogoutModal(false)}
+        title="Keluar dari Akun?"
+        message="Kamu akan keluar dari akun kamu dan perlu login kembali untuk mengakses dashboard."
+        confirmText="Ya, Keluar"
+        cancelText="Batal"
+      />
     </div>
   );
 }

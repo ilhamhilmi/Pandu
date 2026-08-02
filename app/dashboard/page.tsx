@@ -22,6 +22,8 @@ import ErrorState from "@/components/dashboard/error-state";
 import EmptyState from "@/components/dashboard/empty-state";
 import StatCard from "@/components/dashboard/stat-card";
 import ProgressBar from "@/components/dashboard/progress-bar";
+import ConfirmationModal from "@/components/dashboard/confirmation-modal";
+import { useRouter } from "next/navigation";
 
 interface TaskResource {
   type: "video" | "article";
@@ -61,6 +63,8 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [updatingTask, setUpdatingTask] = useState<string | null>(null);
   const [generatingNext, setGeneratingNext] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     fetchData();
@@ -132,11 +136,11 @@ export default function DashboardPage() {
       prev.map((d) =>
         d.day === day
           ? {
-              ...d,
-              tasks: d.tasks.map((t, i) =>
-                i === taskIndex ? { ...t, completed: newCompleted } : t
-              ),
-            }
+            ...d,
+            tasks: d.tasks.map((t, i) =>
+              i === taskIndex ? { ...t, completed: newCompleted } : t
+            ),
+          }
           : d
       )
     );
@@ -212,9 +216,8 @@ export default function DashboardPage() {
     "November",
     "Desember",
   ];
-  const dateString = `${days[today.getDay()]}, ${today.getDate()} ${
-    months[today.getMonth()]
-  } ${today.getFullYear()}`;
+  const dateString = `${days[today.getDay()]}, ${today.getDate()} ${months[today.getMonth()]
+    } ${today.getFullYear()}`;
 
   // Loading state
   if (loading) {
@@ -341,11 +344,10 @@ export default function DashboardPage() {
           return (
             <div
               key={dayData.day}
-              className={`bg-white rounded-xl border p-4 sm:p-5 ${
-                isCurrentDay
-                  ? "border-primary ring-1 ring-primary/20"
-                  : "border-border"
-              }`}
+              className={`bg-white rounded-xl border p-4 sm:p-5 ${isCurrentDay
+                ? "border-primary ring-1 ring-primary/20"
+                : "border-border"
+                }`}
             >
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-inter text-base font-semibold text-foreground">
@@ -383,21 +385,19 @@ export default function DashboardPage() {
                   {dayData.tasks.map((todo, index) => (
                     <div
                       key={index}
-                      className={`rounded-lg border p-4 transition-all ${
-                        todo.completed
-                          ? "border-primary/20 bg-primary/5"
-                          : "border-border bg-white hover:border-primary/30"
-                      }`}
+                      className={`rounded-lg border p-4 transition-all ${todo.completed
+                        ? "border-primary/20 bg-primary/5"
+                        : "border-border bg-white hover:border-primary/30"
+                        }`}
                     >
                       <div className="flex items-start gap-3">
                         <button
                           onClick={() => toggleTodo(dayData.day, index)}
                           disabled={updatingTask === `${dayData.day}-${index}`}
-                          className={`mt-0.5 h-5 w-5 shrink-0 rounded-md border-2 flex items-center justify-center transition-all cursor-pointer disabled:opacity-50 ${
-                            todo.completed
-                              ? "bg-primary border-primary"
-                              : "border-muted-foreground/30 hover:border-primary"
-                          }`}
+                          className={`mt-0.5 h-5 w-5 shrink-0 rounded-md border-2 flex items-center justify-center transition-all cursor-pointer disabled:opacity-50 ${todo.completed
+                            ? "bg-primary border-primary"
+                            : "border-muted-foreground/30 hover:border-primary"
+                            }`}
                         >
                           {todo.completed && (
                             <svg
@@ -417,11 +417,10 @@ export default function DashboardPage() {
                         </button>
                         <div className="flex-1 min-w-0">
                           <p
-                            className={`font-inter text-sm font-medium ${
-                              todo.completed
-                                ? "text-muted-foreground line-through"
-                                : "text-foreground"
-                            }`}
+                            className={`font-inter text-sm font-medium ${todo.completed
+                              ? "text-muted-foreground line-through"
+                              : "text-foreground"
+                              }`}
                           >
                             {todo.title}
                           </p>
@@ -479,11 +478,10 @@ export default function DashboardPage() {
         progress.lastGeneratedDay < progress.targetDays && (
           <div className="mt-6 bg-white rounded-xl border border-border p-5 sm:p-6 text-center">
             <div
-              className={`h-14 w-14 rounded-full flex items-center justify-center mx-auto mb-4 ${
-                allGeneratedDaysCompleted
-                  ? "bg-primary/10"
-                  : "bg-muted"
-              }`}
+              className={`h-14 w-14 rounded-full flex items-center justify-center mx-auto mb-4 ${allGeneratedDaysCompleted
+                ? "bg-primary/10"
+                : "bg-muted"
+                }`}
             >
               {allGeneratedDaysCompleted ? (
                 <FiArrowRight className="h-7 w-7 text-primary" />
@@ -541,7 +539,7 @@ export default function DashboardPage() {
         )}
 
       {/* Quick Actions */}
-      <div className="mt-6 flex flex-col sm:flex-row gap-3">
+      <div className="mt-6 flex gap-3">
         <Link
           href="/dashboard/roadmap"
           className="font-inter flex items-center justify-center gap-2 bg-white border border-border rounded-xl px-5 py-3 text-sm font-medium text-foreground hover:bg-muted transition-colors"
@@ -549,7 +547,28 @@ export default function DashboardPage() {
           Lihat Kemajuan Belajar Kamu
           <FiArrowRight className="h-4 w-4" />
         </Link>
+
+        <button
+          onClick={() => setShowConfirmModal(true)}
+          className="font-inter flex items-center justify-center gap-2 bg-primary border border-primary rounded-xl px-5 py-3 text-sm font-medium text-white hover:bg-primary-hover"
+        >
+          Mulai petualangan belajar baru
+          <FiArrowRight className="h-4 w-4" />
+        </button>
       </div>
+
+      <ConfirmationModal
+        isOpen={showConfirmModal}
+        onConfirm={() => {
+          setShowConfirmModal(false);
+          router.push("/onboarding");
+        }}
+        onCancel={() => setShowConfirmModal(false)}
+        title="Mulai Petualangan Belajar Baru?"
+        message="Progress kamu akan terhapus, termasuk roadmap dan semua task yang sudah selesai. Kamu yakin mau mulai petualangan belajar baru?"
+        confirmText="Ya, Mulai Baru"
+        cancelText="Batal"
+      />
     </div>
   );
 }
