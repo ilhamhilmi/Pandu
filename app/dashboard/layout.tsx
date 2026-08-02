@@ -11,9 +11,10 @@ import {
   FiZap,
   FiBook,
 } from "react-icons/fi";
+import Image from "next/image";
 
 const NAV_ITEMS = [
-  { icon: FiHome, label: "Dashboard", href: "/dashboard" },
+  { icon: FiHome, label: "Beranda", href: "/dashboard" },
   { icon: FiBookOpen, label: "Roadmap", href: "/dashboard/roadmap" },
   { icon: FiBook, label: "Perpustakaan", href: "/dashboard/library" },
   { icon: FiSettings, label: "Pengaturan", href: "/dashboard/settings" },
@@ -32,12 +33,10 @@ export default function DashboardLayout({
       <aside className="hidden md:flex md:flex-col md:w-64 md:fixed md:inset-y-0 bg-white border-r border-border z-30">
         {/* Logo */}
         <div className="flex items-center gap-2 px-6 py-6 border-b border-border">
-          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-            <FiZap className="h-5 w-5 text-primary-foreground" />
+          <div className="bg-white flex items-center justify-center">
+            <Image src="/icon/Pandu_Icon.png" alt="Icon"width={25} height={25}/>
           </div>
-          <span className="font-inter text-lg font-bold text-foreground">
-            LearnPath AI
-          </span>
+          <h1 className="font-inter uppercase border rounded-full py-1 px-2.5 text-sm font-semibold border-primary/10 bg-primary/10 text-primary">Ruang Belajar</h1>
         </div>
 
         {/* Nav Items */}
@@ -49,11 +48,10 @@ export default function DashboardLayout({
               <Link
                 key={item.href}
                 href={item.href}
-                className={`font-inter flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  isActive
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                }`}
+                className={`font-inter flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold transition-all ${isActive
+                  ? "border border-primary bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
               >
                 <Icon className="h-5 w-5 shrink-0" />
                 {item.label}
@@ -126,11 +124,10 @@ export default function DashboardLayout({
               <Link
                 key={item.href}
                 href={item.href}
-                className={`font-inter flex flex-col items-center gap-0.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                  isActive
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={`font-inter flex flex-col items-center gap-0.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${isActive
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+                  }`}
               >
                 <Icon className="h-5 w-5" />
                 <span>{item.label}</span>
