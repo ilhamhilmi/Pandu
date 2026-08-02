@@ -4,10 +4,12 @@ import React, { useState } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { CiMail, CiLock } from "react-icons/ci";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { toast } from "@/components/ui/toast";
 
 export default function Register() {
+  const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -37,7 +39,7 @@ export default function Register() {
       return;
     }
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password
     })
@@ -56,9 +58,34 @@ export default function Register() {
       return;
     }
 
-    toast.add({
-      title: "Cek email kamu buat konfirmasi akun, terus balik lagi ke sini ya",
-    })
+    // If user is automatically signed in (no email confirmation required)
+    if (data.session) {
+      toast.add({
+        title: "Selamat datang! Akun kamu berhasil dibuat",
+      })
+
+      // Check if user already has preference data
+      try {
+        const progressRes = await fetch("/api/user/progress");
+        if (progressRes.ok) {
+          const progressData = await progressRes.json();
+          const hasPreference = progressData.data?.hasPreference;
+
+          // Redirect to dashboard if user has data, otherwise onboarding
+          router.push(hasPreference ? "/dashboard" : "/onboarding");
+        } else {
+          router.push("/onboarding");
+        }
+      } catch {
+        router.push("/onboarding");
+      }
+    } else {
+      // Email confirmation required, ask user to login
+      toast.add({
+        title: "Akun berhasil dibuat, silakan login",
+      })
+      router.push("/sign-in")
+    }
   }
 
   async function handleGoogleRegister(e: React.MouseEvent<HTMLButtonElement>) {
