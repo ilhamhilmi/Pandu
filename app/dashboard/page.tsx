@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  FiZap,
   FiCheckSquare,
   FiCalendar,
   FiTrendingUp,
@@ -12,6 +11,7 @@ import {
   FiExternalLink,
   FiLock,
 } from "react-icons/fi";
+import { FaFire } from "react-icons/fa";
 import {
   SkeletonStatsGrid,
   SkeletonTodoList,
@@ -294,7 +294,7 @@ export default function DashboardPage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
         <StatCard
-          icon={<FiZap className="h-5 w-5" />}
+          icon={<FaFire className="h-5 w-5" />}
           label="Streak"
           value={String(progress?.streak || 0)}
           unit="hari"

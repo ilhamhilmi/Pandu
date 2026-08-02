@@ -135,12 +135,10 @@ export default function DashboardLayout({
         {/* Mobile Header */}
         <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-white">
           <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center">
-              <FiZap className="h-4 w-4 text-primary-foreground" />
+            <div className="h-7 w-7 flex items-center justify-center">
+              <Image src="/icon/Pandu_Icon.png" alt="Icon" width={25} height={25} />
             </div>
-            <span className="font-inter text-base font-bold text-foreground">
-              LearnPath AI
-            </span>
+            <h1 className="font-inter uppercase border rounded-full py-1 px-2.5 text-sm font-semibold border-primary/10 bg-primary/10 text-primary">Ruang Belajar</h1>
           </div>
           <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
             <span className="font-inter text-xs font-semibold text-primary">

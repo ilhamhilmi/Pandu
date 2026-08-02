@@ -7,8 +7,8 @@ import {
   FiCheckSquare,
   FiClock,
   FiTarget,
-  FiZap,
 } from "react-icons/fi";
+import { FaFire } from "react-icons/fa";
 import { SkeletonRoadmap, SkeletonPageHeader } from "@/components/ui/skeleton";
 import PageHeader from "@/components/dashboard/page-header";
 import ErrorState from "@/components/dashboard/error-state";
@@ -189,7 +189,7 @@ export default function RoadmapPage() {
           <div className="bg-white rounded-xl border border-border p-4 sm:p-5 mb-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="h-10 w-10 rounded-lg bg-orange-100 flex items-center justify-center">
-                <FiZap className="h-5 w-5 text-orange-500" />
+                <FaFire className="h-5 w-5 text-orange-500" />
               </div>
               <div>
                 <h2 className="font-inter text-base font-semibold text-foreground">
