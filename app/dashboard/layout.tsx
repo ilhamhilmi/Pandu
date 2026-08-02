@@ -1,8 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   FiHome,
   FiBookOpen,
@@ -12,6 +12,7 @@ import {
   FiBook,
 } from "react-icons/fi";
 import Image from "next/image";
+import { supabase } from "@/lib/supabase/client";
 
 const NAV_ITEMS = [
   { icon: FiHome, label: "Beranda", href: "/dashboard" },
@@ -20,12 +21,49 @@ const NAV_ITEMS = [
   { icon: FiSettings, label: "Pengaturan", href: "/dashboard/settings" },
 ];
 
+interface UserProfile {
+  email: string | null;
+}
+
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [user, setUser] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchUser() {
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+      if (!isMounted) return;
+
+      if (authUser) {
+        setUser({ email: authUser.email ?? null });
+      }
+    }
+
+    fetchUser();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    router.push("/sign-in");
+    router.refresh();
+  }
+
+  const initial = user?.email?.[0]?.toUpperCase() || "U";
+  const displayName = user?.email?.split("@")[0] || "Pengguna";
+  const email = user?.email || "email@tidakdiketahui.com";
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -64,23 +102,24 @@ export default function DashboardLayout({
         <div className="px-3 py-4 border-t border-border">
           {/* User Card */}
           <div className="flex items-center gap-3 px-3 py-2.5 mb-2">
-            <div className="h-9 w-9 rounded-full bg-primary/20 flex items-center justify-center">
+            <div className="h-9 w-9 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
               <span className="font-inter text-sm font-semibold text-primary">
-                AI
+                {initial}
               </span>
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-inter text-sm font-medium text-foreground truncate">
-                Pengguna AI
+                {displayName}
               </p>
               <p className="font-inter text-xs text-muted-foreground truncate">
-                pengguna@email.com
+                {email}
               </p>
             </div>
           </div>
 
           {/* Logout Button */}
           <button
+            onClick={handleLogout}
             className="font-inter flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-all cursor-pointer"
           >
             <FiLogOut className="h-5 w-5 shrink-0" />
@@ -103,7 +142,7 @@ export default function DashboardLayout({
           </div>
           <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
             <span className="font-inter text-xs font-semibold text-primary">
-              AI
+              {initial}
             </span>
           </div>
         </header>

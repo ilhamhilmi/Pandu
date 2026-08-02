@@ -286,7 +286,7 @@ export default function DashboardPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       {/* Greeting */}
-      <PageHeader title="Halo, Selamat belajar ya!" description={dateString} />
+      <PageHeader title="Halo, Selamat belajar!" description={dateString} />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
