@@ -96,7 +96,7 @@ export default function RoadmapPage() {
   if (error) {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <PageHeader title="Roadmap Belajar 🗺️" />
+        <PageHeader title="Roadmap & Progress Belajar" />
         <ErrorState message={error} onRetry={fetchData} />
       </div>
     );
@@ -106,7 +106,7 @@ export default function RoadmapPage() {
   if (!roadmap) {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <PageHeader title="Roadmap Belajar 🗺️" />
+        <PageHeader title="Roadmap & Progress Belajar" />
         <EmptyState
           icon={<FiBookOpen className="h-10 w-10 text-primary" />}
           title="Roadmap Belum Dibuat"
@@ -126,7 +126,7 @@ export default function RoadmapPage() {
   const stats = [
     {
       icon: <FiCheckSquare className="h-5 w-5" />,
-      label: "Total Task",
+      label: "Total Tugas",
       value: String(progress?.totalTasks ?? 0),
       color: "text-blue-500",
       bg: "bg-blue-100",
@@ -140,14 +140,14 @@ export default function RoadmapPage() {
     },
     {
       icon: <FiClock className="h-5 w-5" />,
-      label: "Sisa Task",
+      label: "Sisa Tugas",
       value: String(totalRemaining),
       color: "text-orange-500",
       bg: "bg-orange-100",
     },
     {
       icon: <FiTarget className="h-5 w-5" />,
-      label: "Completion Rate",
+      label: "Total Progress",
       value: `${progress?.progressPercent ?? 0}%`,
       color: "text-primary",
       bg: "bg-primary/10",
@@ -158,7 +158,7 @@ export default function RoadmapPage() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       {/* Header */}
       <PageHeader
-        title="Roadmap Belajar 🗺️"
+        title="Roadmap & Progress Belajar"
         description={`Target: ${roadmap.goal} — ${roadmap.targetDays} Hari`}
       />
 
@@ -197,8 +197,8 @@ export default function RoadmapPage() {
                 </h2>
                 <p className="font-inter text-xs text-muted-foreground">
                   {progress.streak > 0
-                    ? "Kamu sedang on fire! 🔥"
-                    : "Mulai belajar hari ini! 💪"}
+                    ? "Tetap konsisten ya!"
+                    : "Ayo mulai belajar hari ini!"}
                 </p>
               </div>
             </div>

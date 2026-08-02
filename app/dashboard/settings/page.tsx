@@ -114,7 +114,7 @@ export default function SettingsPage() {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       {/* Header */}
       <PageHeader
-        title="Pengaturan ⚙️"
+        title="Pengaturan"
         description="Kelola profil dan preferensi belajar kamu"
       />
 

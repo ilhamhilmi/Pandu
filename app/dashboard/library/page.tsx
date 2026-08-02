@@ -60,7 +60,7 @@ export default function LibraryPage() {
   if (error) {
     return (
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <PageHeader title="Perpustakaan 📚" />
+        <PageHeader title="Perpustakaan" />
         <ErrorState message={error} onRetry={fetchLibrary} />
       </div>
     );
@@ -86,7 +86,7 @@ export default function LibraryPage() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       {/* Header */}
       <PageHeader
-        title="Perpustakaan 📚"
+        title="Perpustakaan"
         description="Kumpulan video belajar dan artikel untuk mendukung perjalanan belajarmu."
       />
 
@@ -100,7 +100,7 @@ export default function LibraryPage() {
               onClick={() => setActiveTab(tab.key)}
               className={`font-inter inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
                 isActive
-                  ? "bg-primary text-primary-foreground shadow-sm"
+                  ? "bg-primary/10 border border-primary text-primary shadow-sm"
                   : "bg-white border border-border text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >

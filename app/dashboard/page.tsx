@@ -243,7 +243,7 @@ export default function DashboardPage() {
   if (!progress?.hasPreference) {
     return (
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <PageHeader title="Halo! Selamat datang 👋" description={dateString} />
+        <PageHeader title="Halo, Selamat datang!" description={dateString} />
         <EmptyState
           icon={<FiTrendingUp className="h-10 w-10 text-primary" />}
           title="Mulai Petualangan Belajar Kamu!"
@@ -259,7 +259,7 @@ export default function DashboardPage() {
   if (!progress?.hasRoadmap) {
     return (
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <PageHeader title="Halo! Selamat datang 👋" description={dateString} />
+        <PageHeader title="Halo, Selamat datang!" description={dateString} />
         <EmptyState
           icon={<FiTrendingUp className="h-10 w-10 text-primary" />}
           title="Roadmap Belum Dibuat"
@@ -286,7 +286,7 @@ export default function DashboardPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       {/* Greeting */}
-      <PageHeader title="Halo! Selamat belajar 👋" description={dateString} />
+      <PageHeader title="Halo, Selamat belajar ya!" description={dateString} />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
@@ -300,7 +300,7 @@ export default function DashboardPage() {
         />
         <StatCard
           icon={<FiCheckSquare className="h-5 w-5" />}
-          label="Task Selesai"
+          label="Tugas Selesai"
           value={String(progress?.totalCompleted || 0)}
           unit="task"
           color="text-emerald-500"
@@ -464,7 +464,7 @@ export default function DashboardPage() {
                   <div className="mt-3 flex items-center gap-2 text-sm text-emerald-600">
                     <FiCheckSquare className="h-4 w-4" />
                     <span className="font-inter font-medium">
-                      Hari selesai! 🎉
+                      Hari selesai!
                     </span>
                   </div>
                 )}
@@ -528,11 +528,11 @@ export default function DashboardPage() {
               {generatingNext ? (
                 <>
                   <FiArrowRight className="h-4 w-4 animate-spin" />
-                  Menggenerate...
+                  Tunggu ya, lagi dibuat nih..
                 </>
               ) : (
                 <>
-                  Mulai Fase Berikutnya
+                  Lanjut ke level berikutnya
                   <FiArrowRight className="h-4 w-4" />
                 </>
               )}
@@ -546,7 +546,7 @@ export default function DashboardPage() {
           href="/dashboard/roadmap"
           className="font-inter flex items-center justify-center gap-2 bg-white border border-border rounded-xl px-5 py-3 text-sm font-medium text-foreground hover:bg-muted transition-colors"
         >
-          Lihat Roadmap & Progress
+          Lihat Kemajuan Belajar Kamu
           <FiArrowRight className="h-4 w-4" />
         </Link>
       </div>
