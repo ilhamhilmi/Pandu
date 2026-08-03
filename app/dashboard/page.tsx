@@ -10,6 +10,7 @@ import {
   FiYoutube,
   FiExternalLink,
   FiLock,
+  FiInfo,
 } from "react-icons/fi";
 import { FaFire } from "react-icons/fa";
 import {
@@ -332,6 +333,17 @@ export default function DashboardPage() {
         percent={progress?.progressPercent || 0}
         label="Progress Keseluruhan"
       />
+
+      {/* Info: sumber belajar di Perpustakaan */}
+      <div className="flex items-start gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4 sm:p-5 mb-6 sm:mb-8">
+        <span className="mt-0.5 shrink-0 text-primary">
+          <FiInfo className="h-5 w-5" />
+        </span>
+        <p className="font-inter text-sm text-foreground">
+          Jika link sumber belajar tidak bisa diakses, coba temukan di halaman
+          Perpustakaan.
+        </p>
+      </div>
 
       {/* All Day Cards */}
       <div className="space-y-4">

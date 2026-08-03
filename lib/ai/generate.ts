@@ -89,6 +89,12 @@ async function callGroqAPI(
 
     // Non-retryable error or out of retries
     const errorText = await response.text();
+
+    // Friendly message for rate limit (429) instead of exposing the raw Groq payload
+    if (response.status === 429) {
+      throw new Error("Coba lagi beberapa saat ya.");
+    }
+
     throw new Error(`Groq API error (${response.status}): ${errorText}`);
   }
 
@@ -115,6 +121,55 @@ function extractJSON(text: string): string {
   }
 
   return text.trim();
+}
+
+// Allowlist of known, trusted programming/documentation sites (incl. Indonesian)
+// to prevent the AI from returning hallucinated/fake URLs.
+const ALLOWED_RESOURCE_HOSTS = new Set([
+  "w3schools.com",
+  "www.w3schools.com",
+  "developer.mozilla.org",
+  "freecodecamp.org",
+  "www.freecodecamp.org",
+  "geeksforgeeks.org",
+  "www.geeksforgeeks.org",
+  "learn.microsoft.com",
+  "react.dev",
+  "vuejs.org",
+  "javascripttutorial.net",
+  "petanikode.com",
+  "www.petanikode.com",
+  "dicoding.com",
+  "www.dicoding.com",
+  "malasngoding.com",
+  "www.malasngoding.com",
+]);
+
+function isAllowedResourceUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return false;
+    }
+    return ALLOWED_RESOURCE_HOSTS.has(parsed.hostname);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Keep only resources whose URL is valid and from an approved domain,
+ * capping at 2 per task (matching the prompt). Removes fake/hallucinated URLs.
+ */
+function sanitizeResources(resources?: TaskResource[]): TaskResource[] {
+  if (!Array.isArray(resources)) {
+    return [];
+  }
+  return resources
+    .filter(
+      (r) => r && typeof r.url === "string" && isAllowedResourceUrl(r.url)
+    )
+    .slice(0, 2);
 }
 
 export async function generateRoadmap(
@@ -177,16 +232,27 @@ ROADMAP:
 ${roadmapSummary}
 
 Buatlah 2-4 task yang relevan untuk hari ke-${day}. Setiap task harus memiliki:
-- title: Nama task (dalam Bahasa Indonesia, jelas dan spesifik)
+- title: Nama task dalam Bahasa Indonesia. Tulis sebagai PERINTAH yang jelas dan bisa langsung diikuti pemula (otodidak). Mulai dengan kata kerja aksi seperti "Pelajari...", "Coba...", "Baca...", "Praktikkan...", "Buat...", "Tonton...", atau "Latih..." diikuti objek yang konkret (konsep/materi).
+  - CONTOH BENAR: "Pelajari Konsep HTML", "Coba buat halaman web pertama dengan HTML", "Praktikkan membuat tabel dan formulir di HTML".
+  - CONTOH SALAH (terlalu umum/ambigu, JANGAN dipakai): "Konfigurasi HTML", "Membuat komponen sederhana", "Setup environment".
 - duration_minutes: Estimasi durasi dalam menit (angka, antara 15-120)
 - resources: Array sumber belajar artikel (minimal 1, maksimal 2) dengan:
   - type: "article"
   - title: Judul artikel (dalam Bahasa Indonesia)
   - url: URL artikel
 
-PRIORITAS SUMBER BELAJAR (HANYA ARTIKEL):
-- w3schools.com (https://www.w3schools.com/...)
-- atau dokumentasi resmi (developer.mozilla.org)
+PENTING UNTUK URL SUMBER BELAJAR (HANYA ARTIKEL):
+- Hanya gunakan URL dari situs terpercaya berikut (pilih yang relevan):
+  - w3schools.com (contoh: https://www.w3schools.com/html/)
+  - developer.mozilla.org (MDN Web Docs)
+  - freecodecamp.org
+  - geeksforgeeks.org
+  - learn.microsoft.com
+  - react.dev, vuejs.org, javascripttutorial.net
+  - Artikel Indonesia: petanikode.com, dicoding.com, malasngoding.com
+- Tulis URL yang LENGKAP dan PASTIKAN URL tersebut BENAR-BENAR ADA serta dapat diakses. JANGAN membuat atau mengarang URL palsu, dan jangan menebak path yang tidak ada.
+- Jika ragu suatu URL valid, lebih baik TIDAK menyertakannya daripada mengarang URL.
+- Prioritaskan dokumentasi resmi dan artikel berbahasa Indonesia.
 
 OUTPUT HANYA JSON ARRAY, tanpa markdown, tanpa teks lain. Format:
 [
@@ -210,7 +276,7 @@ OUTPUT HANYA JSON ARRAY, tanpa markdown, tanpa teks lain. Format:
   // Ensure each task has a resources array
   return tasks.map((task) => ({
     ...task,
-    resources: task.resources || [],
+    resources: sanitizeResources(task.resources),
   }));
 }
 
@@ -248,16 +314,27 @@ ROADMAP:
 ${roadmapSummary}
 
 Buatlah 2-4 task yang relevan untuk SETIAP hari dalam rentang tersebut. Setiap task harus memiliki:
-- title: Nama task (dalam Bahasa Indonesia, jelas dan spesifik)
+- title: Nama task dalam Bahasa Indonesia. Tulis sebagai PERINTAH yang jelas dan bisa langsung diikuti pemula (otodidak). Mulai dengan kata kerja aksi seperti "Pelajari...", "Coba...", "Baca...", "Praktikkan...", "Buat...", "Tonton...", atau "Latih..." diikuti objek yang konkret (konsep/materi).
+  - CONTOH BENAR: "Pelajari Konsep HTML", "Coba buat halaman web pertama dengan HTML", "Praktikkan membuat tabel dan formulir di HTML".
+  - CONTOH SALAH (terlalu umum/ambigu, JANGAN dipakai): "Konfigurasi HTML", "Membuat komponen sederhana", "Setup environment".
 - duration_minutes: Estimasi durasi dalam menit (angka, antara 15-120)
 - resources: Array sumber belajar artikel (minimal 1, maksimal 2) dengan:
   - type: "article"
   - title: Judul artikel (dalam Bahasa Indonesia)
   - url: URL artikel
 
-PRIORITAS SUMBER BELAJAR (HANYA ARTIKEL):
-- w3schools.com (https://www.w3schools.com/...)
-- atau dokumentasi resmi (developer.mozilla.org)
+PENTING UNTUK URL SUMBER BELAJAR (HANYA ARTIKEL):
+- Hanya gunakan URL dari situs terpercaya berikut (pilih yang relevan):
+  - w3schools.com (contoh: https://www.w3schools.com/html/)
+  - developer.mozilla.org (MDN Web Docs)
+  - freecodecamp.org
+  - geeksforgeeks.org
+  - learn.microsoft.com
+  - react.dev, vuejs.org, javascripttutorial.net
+  - Artikel Indonesia: petanikode.com, dicoding.com, malasngoding.com
+- Tulis URL yang LENGKAP dan PASTIKAN URL tersebut BENAR-BENAR ADA serta dapat diakses. JANGAN membuat atau mengarang URL palsu, dan jangan menebak path yang tidak ada.
+- Jika ragu suatu URL valid, lebih baik TIDAK menyertakannya daripada mengarang URL.
+- Prioritaskan dokumentasi resmi dan artikel berbahasa Indonesia.
 
 OUTPUT HANYA JSON ARRAY, tanpa markdown, tanpa teks lain. Format:
 [
@@ -290,7 +367,7 @@ Pastikan setiap hari dari ${startDay} sampai ${batchEnd} ada dalam output. Buat 
     day: batch.day,
     tasks: batch.tasks.map((task) => ({
       ...task,
-      resources: task.resources || [],
+      resources: sanitizeResources(task.resources),
     })),
   }));
 
