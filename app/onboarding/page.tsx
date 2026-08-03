@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { CiClock2, CiCalendarDate, CiStar, CiCalendar } from "react-icons/ci";
 import { FiLoader } from "react-icons/fi";
 import { supabase } from "@/lib/supabase/client";
-import { SkeletonCard, SkeletonLine } from "@/components/ui/skeleton";
+import { SkeletonCard } from "@/components/ui/skeleton";
 
 const GOAL_OPTIONS = [
   { value: "web developer", label: "Web Developer" },

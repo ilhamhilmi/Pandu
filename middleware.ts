@@ -31,13 +31,15 @@ export async function middleware(request: NextRequest) {
 
     const publicRoutes = ["/sign-in", "/sign-up", "/api/auth/callback"];
 
-    // If user is not signed in and trying to access protected routes
-    if (
-        !user &&
-        !publicRoutes.some((route) =>
+    // The landing page (/) is public, plus the auth routes
+    const isPublicRoute =
+        request.nextUrl.pathname === "/" ||
+        publicRoutes.some((route) =>
             request.nextUrl.pathname.startsWith(route)
-        )
-    ) {
+        );
+
+    // If user is not signed in and trying to access protected routes
+    if (!user && !isPublicRoute) {
         const url = request.nextUrl.clone();
         url.pathname = "/sign-in";
         return NextResponse.redirect(url);
@@ -50,7 +52,7 @@ export async function middleware(request: NextRequest) {
             request.nextUrl.pathname.startsWith("/sign-up"))
     ) {
         const url = request.nextUrl.clone();
-        url.pathname = "/";
+        url.pathname = "/dashboard";
         return NextResponse.redirect(url);
     }
 
