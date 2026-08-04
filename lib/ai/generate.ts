@@ -445,3 +445,106 @@ Pastikan setiap hari dari ${startDay} sampai ${batchEnd} ada dalam output. Buat 
 
   return batches;
 }
+
+export interface PracticeQuestion {
+  id: number;
+  code: string;
+  language?: string;
+  instruction?: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
+/**
+ * Minimal sanitization untuk soal latihan hasil AI.
+ * Memastikan setiap soal punya struktur yang valid dan dapat dirender oleh UI.
+ */
+function sanitizePracticeQuestion(
+  q: PracticeQuestion,
+  index: number
+): PracticeQuestion | null {
+  if (!q || typeof q.code !== "string" || !q.code.trim()) return null;
+  if (!q.code.includes("____")) return null; // harus punya celah rumpang
+  if (!Array.isArray(q.options) || q.options.length < 2) return null;
+  if (
+    typeof q.correctIndex !== "number" ||
+    q.correctIndex < 0 ||
+    q.correctIndex >= q.options.length
+  ) {
+    return null;
+  }
+  if (typeof q.explanation !== "string" || !q.explanation.trim()) return null;
+
+  return {
+    id: index + 1,
+    code: q.code,
+    language: q.language ?? undefined,
+    instruction: q.instruction ?? undefined,
+    options: q.options.slice(0, 4), // maksimal 4 opsi
+    correctIndex: q.correctIndex,
+    explanation: q.explanation,
+  };
+}
+
+/**
+ * Generate "Syntax Puzzle" (soal melengkapi sintaks rumpang) berdasarkan
+ * goal dan topik belajar pengguna. Dihasilkan on-demand setiap kali user
+ * menekan "Mulai latihan" / "Latihan lagi".
+ *
+ * @param input.goal   - Goal belajar yang dipilih pengguna
+ * @param input.topics - Topik dari roadmap (referensi materi soal)
+ */
+export async function generatePracticeQuestions(input: {
+  goal: string;
+  topics: string[];
+}): Promise<PracticeQuestion[]> {
+  const topicsSummary =
+    input.topics && input.topics.length > 0
+      ? input.topics.join(", ")
+      : "belum ada topik spesifik, gunakan materi dasar dari goal";
+
+  const prompt = `Kamu adalah mentor programming. Buatkan "Syntax Puzzle" untuk latihan melengkapi sintaks yang rumpang (atau sebagian kode yang hilang) berdasarkan GOAL dan TOPIK belajar pengguna berikut.
+
+GOAL PENGGUNA: ${input.goal}
+TOPIK REFERENSI: ${topicsSummary}
+
+PERSYARATAN:
+- Buat 5-10 soal (pilih jumlah acak di rentang itu).
+- Setiap soal menampilkan potongan kode (code) yang RELEVAN dengan goal/topik di atas. Gunakan bahasa yang sesuai (contoh: HTML, CSS, JavaScript, atau lainnya sesuai goal).
+- Di dalam code terdapat SATU bagian rumpang yang dilambangkan dengan empat garis bawah: "____". Bagian yang dirumpang bisa berupa nama tag, atribut, properti CSS, keyword, method, dsb.
+- Setiap soal memiliki 2-4 pilihan jawaban (options) sebagai array string.
+- Tepat SATU jawaban benar terletak pada indeks correctIndex (0-based) di dalam array options. Pilihan-pilihan lain harus PLASIBEL (seolah-olah benar) namun salah.
+- explanation: Jelaskan dengan bahasa Indonesia (ringkas namun jelas) KENAPA jawaban tersebut benar, dan bila perlu mengapa pilihan lain salah.
+- instruction (opsional): instruksi singkat untuk soal, contoh: "Lengkapi sintaks berikut menggunakan CSS Flexbox untuk pusatkan elemen secara horizontal.".
+
+OUTPUT HANYA JSON ARRAY, tanpa markdown, tanpa teks lain. Format setiap elemen:
+{
+  "code": "display: ____;",
+  "language": "CSS",
+  "instruction": "Lengkapi properti CSS agar elemen menjadi flex container.",
+  "options": ["flex", "block", "grid", "inline"],
+  "correctIndex": 0,
+  "explanation": "Jawaban 'flex' benar karena menetapkan elemen sebagai flex container sehingga kita bisa mengatur tata letak anak-anak elemen dengan flexbox..."
+}
+
+Pastikan variasi bahasa sesuai goal, tingkat kesulitan wajar untuk pemula (otodidak), dan setiap soal benar-benar bisa dijawab dari materi goal/topik.`;
+
+  const rawText = await callGroqAPI(prompt, { maxTokens: 4096 });
+  const jsonStr = extractJSON(rawText);
+  const parsed = JSON.parse(jsonStr) as PracticeQuestion[];
+
+  if (!Array.isArray(parsed) || parsed.length === 0) {
+    throw new Error("Gagal membuat soal latihan. Coba lagi.");
+  }
+
+  const questions = parsed
+    .map((q, i) => sanitizePracticeQuestion(q, i))
+    .filter((q): q is PracticeQuestion => q !== null);
+
+  if (questions.length === 0) {
+    throw new Error("Gagal membuat soal latihan. Coba lagi.");
+  }
+
+  return questions.slice(0, 10);
+}

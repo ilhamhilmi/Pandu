@@ -5,11 +5,11 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   FiHome,
-  FiBookOpen,
+  FiBarChart,
   FiSettings,
   FiLogOut,
-  FiZap,
-  FiBook,
+  FiTarget,
+  FiBookOpen,
 } from "react-icons/fi";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase/client";
@@ -17,8 +17,9 @@ import ConfirmationModal from "@/components/dashboard/confirmation-modal";
 
 const NAV_ITEMS = [
   { icon: FiHome, label: "Beranda", href: "/dashboard" },
-  { icon: FiBookOpen, label: "Roadmap", href: "/dashboard/roadmap" },
-  { icon: FiBook, label: "Perpustakaan", href: "/dashboard/library" },
+  { icon: FiBarChart, label: "Roadmap", href: "/dashboard/roadmap" },
+  { icon: FiBookOpen, label: "Perpustakaan", href: "/dashboard/library" },
+  { icon: FiTarget, label: "Latihan", href: "/dashboard/practice" },
   { icon: FiSettings, label: "Pengaturan", href: "/dashboard/settings" },
 ];
 
@@ -140,11 +141,14 @@ export default function DashboardLayout({
             </div>
             <h1 className="font-inter uppercase border rounded-full py-1 px-2.5 text-sm font-semibold border-primary/10 bg-primary/10 text-primary">Ruang Belajar</h1>
           </div>
-          <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
+          <Link
+            href="/dashboard/settings"
+            className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center cursor-pointer"
+          >
             <span className="font-inter text-xs font-semibold text-primary">
               {initial}
             </span>
-          </div>
+          </Link>
         </header>
 
         {/* Page Content */}
@@ -156,7 +160,7 @@ export default function DashboardLayout({
       {/* Bottom Navbar Mobile */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-border z-30">
         <div className="flex items-center justify-around px-2 py-1">
-          {NAV_ITEMS.map((item) => {
+          {NAV_ITEMS.filter((item) => item.href !== "/dashboard/settings").map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
             return (
