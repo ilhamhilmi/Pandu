@@ -340,8 +340,8 @@ export default function DashboardPage() {
           <FiInfo className="h-5 w-5" />
         </span>
         <p className="font-inter text-sm text-foreground">
-          Jika link sumber belajar tidak bisa diakses, coba temukan di halaman {" "}
-          <Link href="/dashboard/library" className="underline">Perpustakaan</Link>.
+          Kalau link sumber belajar tidak bisa diakses, coba temukan di halaman {" "}
+          <Link href="/dashboard/library" className="underline">Perpustakaan</Link> ya.
         </p>
       </div>
 
