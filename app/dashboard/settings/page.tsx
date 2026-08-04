@@ -11,6 +11,7 @@ import {
   FiClock,
   FiLogOut,
   FiChevronRight,
+  FiTrash2,
 } from "react-icons/fi";
 import { supabase } from "@/lib/supabase/client";
 import ConfirmationModal from "@/components/dashboard/confirmation-modal";
@@ -38,6 +39,9 @@ export default function SettingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -79,6 +83,38 @@ export default function SettingsPage() {
     await supabase.auth.signOut();
     router.push("/sign-in");
     router.refresh();
+  }
+
+  async function handleDeleteAccount() {
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch("/api/user/delete-account", {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setDeleteError(
+          data.error || "Gagal menghapus akun. Silakan coba lagi."
+        );
+        setDeleting(false);
+        return;
+      }
+
+      // Account deleted successfully - sign out and return to sign-in
+      try {
+        await supabase.auth.signOut();
+      } catch {
+        // Session may already be invalid after deletion; ignore.
+      }
+      setShowDeleteModal(false);
+      router.push("/sign-in");
+      router.refresh();
+    } catch {
+      setDeleteError("Terjadi kesalahan. Silakan coba lagi.");
+      setDeleting(false);
+    }
   }
 
   // Loading state
@@ -275,6 +311,30 @@ export default function SettingsPage() {
           </div>
           <FiChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-red-500 transition-colors" />
         </button>
+
+        {/* Hapus Akun */}
+        <button
+          onClick={() => {
+            setDeleteError(null);
+            setShowDeleteModal(true);
+          }}
+          className="font-inter flex w-full items-center justify-between bg-white rounded-xl border border-red-200 p-4 sm:p-5 hover:bg-red-50 hover:border-red-300 transition-colors group cursor-pointer"
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-red-100 flex items-center justify-center">
+              <FiTrash2 className="h-4 w-4 text-red-500" />
+            </div>
+            <div className="text-left">
+              <p className="font-inter text-sm font-medium text-red-600 group-hover:text-red-700 transition-colors">
+                Hapus Akun
+              </p>
+              <p className="font-inter text-xs text-muted-foreground">
+                Hapus akun dan seluruh data kamu secara permanen
+              </p>
+            </div>
+          </div>
+          <FiChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-red-500 transition-colors" />
+        </button>
       </div>
 
       {/* Confirmation Modal - Ubah Preferensi */}
@@ -304,6 +364,32 @@ export default function SettingsPage() {
         confirmText="Ya, Keluar"
         cancelText="Batal"
       />
+
+      {/* Confirmation Modal - Hapus Akun */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onConfirm={() => {
+          if (!deleting) {
+            handleDeleteAccount();
+          }
+        }}
+        onCancel={() => {
+          if (!deleting) {
+            setShowDeleteModal(false);
+          }
+        }}
+        title="Hapus Akun Secara Permanen?"
+        message="Seluruh data kamu akan terhapus selamanya, termasuk preferensi, roadmap, semua task, dan akun di sistem autentikasi. Tindakan ini tidak dapat dibatalkan. Kamu yakin ingin menghapus akun?"
+        confirmText={deleting ? "Menghapus..." : "Ya, Hapus Akun"}
+        cancelText="Batal"
+      />
+
+      {/* Delete error message */}
+      {deleteError && (
+        <div className="mt-4">
+          <ErrorState message={deleteError} onRetry={() => setDeleteError(null)} />
+        </div>
+      )}
     </div>
   );
 }
