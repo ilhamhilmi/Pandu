@@ -29,12 +29,22 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. Parse optional startDay from request body
+    // 3. Get user's preference for daily study hours (drives task density)
+    const preference = await prisma.userPreference.findUnique({
+      where: { userId: user.id },
+    });
+    const hoursPerDay = preference?.hoursPerDay ?? null;
+
+    // 4. Parse optional body: startDay & difficultyFeedback
     let startDay = 1;
+    let difficultyFeedback: string | undefined;
     try {
       const body = await request.json();
       if (body?.startDay && typeof body.startDay === "number") {
         startDay = body.startDay;
+      }
+      if (typeof body?.difficultyFeedback === "string") {
+        difficultyFeedback = body.difficultyFeedback;
       }
     } catch {
       // No body or invalid JSON — default to startDay = 1
@@ -50,7 +60,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // 4. If startDay === 1, delete all existing tasks (fresh start / re-onboarding)
+    // 5. If startDay === 1, delete all existing tasks (fresh start / re-onboarding)
     //    If startDay > 1, only delete tasks for the days we're about to generate
     //    (to avoid duplicates if user clicks the button twice)
     const batchEnd = Math.min(startDay + DAYS_PER_BATCH - 1, totalDays);
@@ -77,13 +87,15 @@ export async function POST(request: Request) {
       duration: string;
     }>;
 
-    // 5. Generate daily tasks for this batch (7 days)
+    // 6. Generate daily tasks for this batch (7 days)
     const daysToGenerate = Math.min(DAYS_PER_BATCH, totalDays - startDay + 1);
     const taskBatches = await generateDailyTasksBatch(
       phases,
       startDay,
       daysToGenerate,
-      totalDays
+      totalDays,
+      hoursPerDay,
+      difficultyFeedback
     );
 
     const newDailyTasks: Array<{
@@ -108,7 +120,7 @@ export async function POST(request: Request) {
       })),
     }));
 
-    // 6. Save new daily tasks to database
+    // 7. Save new daily tasks to database
     if (newDailyTasks.length > 0) {
       await prisma.dailyTask.createMany({
         data: newDailyTasks,

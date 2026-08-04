@@ -172,6 +172,61 @@ function sanitizeResources(resources?: TaskResource[]): TaskResource[] {
     .slice(0, 2);
 }
 
+/**
+ * Guidance untuk kepadatan task harian berdasarkan jam belajar user.
+ * Semakin banyak jam/hari → semakin banyak & padat task; semakin sedikit → lebih ringan.
+ */
+interface DailyTaskGuidance {
+  minTasks: number;
+  maxTasks: number;
+  targetDailyMinutes: number;
+  maxPerTask: number;
+}
+
+function buildDailyTaskGuidance(hoursPerDay?: number | null): DailyTaskGuidance {
+  const hours = hoursPerDay && hoursPerDay > 0 ? Math.min(hoursPerDay, 8) : 1;
+
+  // Total estimasi durasi belajar per hari (target)
+  const targetDailyMinutes = Math.round(hours * 60);
+
+  // Jumlah task naik seiring jam belajar (dibatasi rentang 1-6)
+  const minTasks = 2 + Math.min(2, Math.floor(hours - 1));
+  const maxTasks = 2 + Math.min(4, Math.floor(hours));
+
+  // Batas maksimal durasi per task agar total harian bisa tercapai merata
+  const maxPerTask = Math.min(
+    120,
+    Math.max(45, Math.ceil(targetDailyMinutes / minTasks))
+  );
+
+  return { minTasks, maxTasks, targetDailyMinutes, maxPerTask };
+}
+
+/**
+ * Membangun paragraf panduan kepadatan + feedback kesulitan untuk prompt task.
+ */
+function buildTaskGuidancePrompt(
+  hoursPerDay?: number | null,
+  difficultyFeedback?: string
+): string {
+  const g = buildDailyTaskGuidance(hoursPerDay);
+
+  const lines = [
+    `- Buatlah ${g.minTasks}-${g.maxTasks} task yang relevan untuk SETIAP hari.`,
+    `- Total estimasi durasi task dalam sehari harus mendekati ${g.targetDailyMinutes} menit (±10 menit). Sebar duration_minutes tiap task (antara 15-${g.maxPerTask} menit) agar total harian tercapai secara merata.`,
+    `- Sesuaikan kepadatan: karena user belajar sekitar ${g.targetDailyMinutes} menit/hari, buat task secukupnya (jika waktu banyak → task lebih banyak & terperinci; jika sedikit → task lebih sedikit, padat, dan fokus pada hal terpenting).`,
+  ];
+
+  const feedback = difficultyFeedback?.trim();
+  if (feedback) {
+    lines.push(
+      `- KESULITAN USER DI FASE SEBELUMNYA: "${feedback}". Perhatikan masukan ini saat menyusun task fase berikutnya: perjelas kembali konsep yang sulit, tambahkan contoh & latihan bertahap, dan sesuaikan tingkat kesulitan agar lebih mudah dipahami.`
+    );
+  }
+
+  return lines.join("\n");
+}
+
 export async function generateRoadmap(
   preference: UserPreference
 ): Promise<RoadmapPhase[]> {
@@ -217,7 +272,9 @@ OUTPUT HANYA JSON ARRAY, tanpa markdown, tanpa teks lain. Format:
 export async function generateDailyTasks(
   roadmap: RoadmapPhase[],
   day: number,
-  totalDays: number
+  totalDays: number,
+  hoursPerDay?: number | null,
+  difficultyFeedback?: string
 ): Promise<DailyTaskItem[]> {
   const roadmapSummary = roadmap
     .map(
@@ -226,16 +283,21 @@ export async function generateDailyTasks(
     )
     .join("\n");
 
+  const g = buildDailyTaskGuidance(hoursPerDay);
+
+  const guidance = buildTaskGuidancePrompt(hoursPerDay, difficultyFeedback);
+
   const prompt = `Kamu adalah seorang mentor programming. Berdasarkan roadmap belajar berikut, buatlah task harian untuk hari ke-${day} dari ${totalDays} hari.
 
 ROADMAP:
 ${roadmapSummary}
 
-Buatlah 2-4 task yang relevan untuk hari ke-${day}. Setiap task harus memiliki:
+${guidance}
+Setiap task harus memiliki:
 - title: Nama task dalam Bahasa Indonesia. Tulis sebagai PERINTAH yang jelas dan bisa langsung diikuti pemula (otodidak). Mulai dengan kata kerja aksi seperti "Pelajari...", "Coba...", "Baca...", "Praktikkan...", "Buat...", "Tonton...", atau "Latih..." diikuti objek yang konkret (konsep/materi).
   - CONTOH BENAR: "Pelajari Konsep HTML", "Coba buat halaman web pertama dengan HTML", "Praktikkan membuat tabel dan formulir di HTML".
   - CONTOH SALAH (terlalu umum/ambigu, JANGAN dipakai): "Konfigurasi HTML", "Membuat komponen sederhana", "Setup environment".
-- duration_minutes: Estimasi durasi dalam menit (angka, antara 15-120)
+- duration_minutes: Estimasi durasi dalam menit (angka, antara 15-${g.maxPerTask})
 - resources: Array sumber belajar artikel (minimal 1, maksimal 2) dengan:
   - type: "article"
   - title: Judul artikel (dalam Bahasa Indonesia)
@@ -289,18 +351,25 @@ OUTPUT HANYA JSON ARRAY, tanpa markdown, tanpa teks lain. Format:
  * @param startDay - First day to generate (1, 8, 15, ...)
  * @param daysToGenerate - How many days to generate in this batch (default 7)
  * @param totalDays - Total target days from the roadmap
+ * @param hoursPerDay - User's daily study hours (drives task density)
+ * @param difficultyFeedback - Optional user feedback on difficulties (used in prompt)
  */
 export async function generateDailyTasksBatch(
   roadmap: RoadmapPhase[],
   startDay: number,
   daysToGenerate: number = 7,
-  totalDays: number
+  totalDays: number,
+  hoursPerDay?: number | null,
+  difficultyFeedback?: string
 ): Promise<DailyTaskBatch[]> {
   const roadmapSummary = roadmap
     .map(
       (phase) => `${phase.week} - ${phase.title}: ${phase.topics.join(", ")}`
     )
     .join("\n");
+
+  const g = buildDailyTaskGuidance(hoursPerDay);
+  const guidance = buildTaskGuidancePrompt(hoursPerDay, difficultyFeedback);
 
   const batchEnd = Math.min(startDay + daysToGenerate - 1, totalDays);
   const dayRange =
@@ -313,11 +382,12 @@ export async function generateDailyTasksBatch(
 ROADMAP:
 ${roadmapSummary}
 
-Buatlah 2-4 task yang relevan untuk SETIAP hari dalam rentang tersebut. Setiap task harus memiliki:
+${guidance}
+Setiap task harus memiliki:
 - title: Nama task dalam Bahasa Indonesia. Tulis sebagai PERINTAH yang jelas dan bisa langsung diikuti pemula (otodidak). Mulai dengan kata kerja aksi seperti "Pelajari...", "Coba...", "Baca...", "Praktikkan...", "Buat...", "Tonton...", atau "Latih..." diikuti objek yang konkret (konsep/materi).
   - CONTOH BENAR: "Pelajari Konsep HTML", "Coba buat halaman web pertama dengan HTML", "Praktikkan membuat tabel dan formulir di HTML".
   - CONTOH SALAH (terlalu umum/ambigu, JANGAN dipakai): "Konfigurasi HTML", "Membuat komponen sederhana", "Setup environment".
-- duration_minutes: Estimasi durasi dalam menit (angka, antara 15-120)
+- duration_minutes: Estimasi durasi dalam menit (angka, antara 15-${g.maxPerTask})
 - resources: Array sumber belajar artikel (minimal 1, maksimal 2) dengan:
   - type: "article"
   - title: Judul artikel (dalam Bahasa Indonesia)

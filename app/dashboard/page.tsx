@@ -24,6 +24,7 @@ import EmptyState from "@/components/dashboard/empty-state";
 import StatCard from "@/components/dashboard/stat-card";
 import ProgressBar from "@/components/dashboard/progress-bar";
 import ConfirmationModal from "@/components/dashboard/confirmation-modal";
+import DifficultyModal from "@/components/dashboard/difficulty-modal";
 import { useRouter } from "next/navigation";
 
 interface TaskResource {
@@ -65,6 +66,7 @@ export default function DashboardPage() {
   const [updatingTask, setUpdatingTask] = useState<string | null>(null);
   const [generatingNext, setGeneratingNext] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showDifficultyModal, setShowDifficultyModal] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -95,7 +97,7 @@ export default function DashboardPage() {
     }
   }
 
-  async function handleGenerateNextBatch() {
+  async function handleGenerateNextBatch(difficultyFeedback?: string) {
     if (!progress || generatingNext) return;
 
     const nextStartDay = (progress.lastGeneratedDay || 0) + 1;
@@ -106,7 +108,10 @@ export default function DashboardPage() {
       const res = await fetch("/api/ai/generate-tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ startDay: nextStartDay }),
+        body: JSON.stringify({
+          startDay: nextStartDay,
+          difficultyFeedback: difficultyFeedback || "",
+        }),
       });
 
       if (!res.ok) {
@@ -531,7 +536,7 @@ export default function DashboardPage() {
               )}
             </p>
             <button
-              onClick={handleGenerateNextBatch}
+              onClick={() => setShowDifficultyModal(true)}
               disabled={generatingNext || !allGeneratedDaysCompleted}
               className="font-inter inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-lg text-sm font-semibold hover:bg-primary-hover transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
@@ -580,6 +585,16 @@ export default function DashboardPage() {
         message="Progress kamu akan terhapus, termasuk roadmap dan semua task yang sudah selesai. Kamu yakin mau mulai petualangan belajar baru?"
         confirmText="Ya, Mulai Baru"
         cancelText="Batal"
+      />
+
+      <DifficultyModal
+        isOpen={showDifficultyModal}
+        processing={generatingNext}
+        onCancel={() => setShowDifficultyModal(false)}
+        onConfirm={(feedback) => {
+          setShowDifficultyModal(false);
+          handleGenerateNextBatch(feedback);
+        }}
       />
     </div>
   );
