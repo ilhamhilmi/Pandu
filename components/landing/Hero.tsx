@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "motion/react";
 import { FiArrowRight, FiCheck, FiChevronDown } from "react-icons/fi";
 import { FaFire } from "react-icons/fa";
 import Link from "next/link";
@@ -58,7 +59,7 @@ export default function Hero() {
         </div> */}
 
         <h1 className="font-inter mt-6 text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-tight text-foreground">
-          Belajar Programming Jadi <span className="text-primary">Terarah</span>, Tanpa Bingung
+          Belajar <span className="font-mono">Programming</span> Lebih <span className="text-primary">Terarah</span>, Tanpa Bingung
           <br className="hidden sm:block" /> Mulai dari Mana
         </h1>
 
@@ -108,7 +109,16 @@ function HeroMockup() {
   }
 
   return (
-    <div className="mx-auto mt-14 max-w-3xl text-left">
+    <motion.div
+      animate={{
+        y: [0, -12, 0],
+      }}
+      transition={{
+        duration: 2.5,
+        repeat: Infinity,
+        ease: "easeInOut",
+      }}
+      className="mx-auto mt-14 max-w-3xl text-left">
       <div className="rounded-2xl border border-border bg-white p-5 shadow-2xl shadow-primary/10">
         <div className="flex items-center justify-between border-b border-border pb-4">
           <div className="flex items-center gap-2">
@@ -162,18 +172,16 @@ function HeroMockup() {
                 onClick={() => toggleTask(t.id)}
                 aria-pressed={t.done}
                 aria-label={`Tandai "${t.title}" ${t.done ? "belum selesai" : "selesai"}`}
-                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition-all cursor-pointer ${
-                  t.done
+                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition-all cursor-pointer ${t.done
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-muted-foreground/40 bg-white hover:border-primary hover:bg-primary/10"
-                }`}
+                  }`}
               >
                 {t.done && <FiCheck className="h-4 w-4" strokeWidth={3} />}
               </button>
               <span
-                className={`font-inter text-sm font-medium transition-colors ${
-                  t.done ? "text-muted-foreground line-through" : "text-foreground"
-                }`}
+                className={`font-inter text-sm font-medium transition-colors ${t.done ? "text-muted-foreground line-through" : "text-foreground"
+                  }`}
               >
                 {t.title}
               </span>
@@ -184,6 +192,6 @@ function HeroMockup() {
           ))}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

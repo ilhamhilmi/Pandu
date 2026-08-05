@@ -5,6 +5,7 @@ import Stats from "@/components/landing/Stats";
 import Features from "@/components/landing/Features";
 import HowItWorks from "@/components/landing/HowItWorks";
 import TargetUsers from "@/components/landing/TargetUsers";
+import Marquee from "@/components/landing/Marquee";
 import Faq from "@/components/landing/Faq";
 import CtaBanner from "@/components/landing/CtaBanner";
 import Footer from "@/components/landing/Footer";
@@ -30,6 +31,7 @@ export default function Home() {
         <Features />
         <HowItWorks />
         <TargetUsers />
+        <Marquee />
         <Faq />
         <CtaBanner />
       </main>
