@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FiArrowRight, FiCheck, FiChevronDown } from "react-icons/fi";
 import { FaFire } from "react-icons/fa";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase/client";
 
 interface HeroTask {
   id: number;
@@ -19,6 +20,31 @@ const INITIAL_TASKS: HeroTask[] = [
 ];
 
 export default function Hero() {
+  const [user, setUser] = useState<{ email: string | null } | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchUser() {
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+      if (!isMounted) return;
+
+      if (authUser) {
+        setUser({ email: authUser.email ?? null });
+      }
+    }
+
+    fetchUser();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const primaryHref = user ? "/dashboard" : "/sign-up";
+
   return (
     <section className="relative overflow-hidden">
       {/* decorative gradient blobs */}
@@ -44,7 +70,7 @@ export default function Hero() {
 
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link
-            href="/sign-up"
+            href={primaryHref}
             className="font-inter inline-flex w-full sm:w-auto items-center justify-center gap-2 bg-primary text-primary-foreground px-7 py-3.5 rounded-xl text-base font-semibold hover:bg-primary-hover transition-colors cursor-pointer"
           >
             Mulai Belajar Gratis
