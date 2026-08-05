@@ -8,12 +8,9 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <Logo />
-            <span className="font-inter uppercase border rounded-full py-1 px-2.5 text-sm font-semibold border-primary/10 bg-primary/10 text-primary">
-              Ruang Belajar
-            </span>
           </div>
           <p className="font-inter text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Pandu — Ruang Belajar. Dibuat dengan ❤️.
+            © {new Date().getFullYear()} Pandu. Dibikin di Indonesia.
           </p>
         </div>
       </div>

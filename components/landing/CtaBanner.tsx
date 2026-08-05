@@ -11,7 +11,7 @@ interface CtaBannerProps {
 /** Full-width call-to-action banner with brand-colored background. */
 export default function CtaBanner({
   title = "Siap mulai belajar programming dengan terarah?",
-  subtitle = "Bikin akun gratis, isi preferensimu, dan biarkan Pandu menyusun roadmap belajar pertamamu.",
+  subtitle = "Bikin akun gratis, isi preferensimu, biarkan Pandu menyusun roadmap belajar pertamamu dan mulai petualangan belajar otodidak kamu.",
   ctaLabel = "Bikin akun gratis",
   ctaHref = "/sign-up",
 }: CtaBannerProps) {

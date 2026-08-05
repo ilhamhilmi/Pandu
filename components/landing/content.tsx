@@ -30,10 +30,10 @@ export interface Stat {
 }
 
 export const STATS: Stat[] = [
-  { icon: <FiMap className="h-5 w-5" />, value: "Roadmap berfase", label: "Disusun AI sesuai goal kamu" },
-  { icon: <FiCalendar className="h-5 w-5" />, value: "Task per 7 hari", label: "To-do harian yang actionable" },
+  { icon: <FiMap className="h-5 w-5" />, value: "Roadmap Relevan", label: "Disusun oleh AI sesuai goal kamu" },
+  { icon: <FiCalendar className="h-5 w-5" />, value: "Tugas per 7 hari", label: "To-do harian yang relevan" },
   { icon: <FiTrendingUp className="h-5 w-5" />, value: "Streak & progress", label: "Pantau perkembangan setiap hari" },
-  { icon: <FiBookOpen className="h-5 w-5" />, value: "Sumber terkuras", label: "Artikel & video terpercaya" },
+  { icon: <FiBookOpen className="h-5 w-5" />, value: "Sumber belajar", label: "Artikel & video terpercaya" },
 ];
 
 export interface Feature {
@@ -45,12 +45,12 @@ export interface Feature {
 export const FEATURES: Feature[] = [
   {
     icon: <FaRobot className="h-6 w-6" />,
-    title: "AI Roadmap Personal",
+    title: "AI Roadmap",
     desc: "AI (Llama 3.3 via Groq) menyusun roadmap berfase dari preferensimu — goal, target waktu, skill saat ini, dan jam belajar per hari.",
   },
   {
     icon: <FiCheckCircle className="h-6 w-6" />,
-    title: "Daily Tasks Actionable",
+    title: "To-do Harian yang Relevan",
     desc: "Task harian yang jelas, lengkap dengan estimasi durasi dan sumber belajar. Hari berikutnya terbuka setelah semuanya selesai.",
   },
   {
@@ -60,24 +60,23 @@ export const FEATURES: Feature[] = [
   },
   {
     icon: <FiBookOpen className="h-6 w-6" />,
-    title: "Perpustakaan Terkurasi",
+    title: "Perpustakaan Belajar",
     desc: "Koleksi video & artikel belajar dari sumber tepercaya seperti w3schools, MDN, dan channel YouTube pilihan.",
   },
   {
     icon: <FiTarget className="h-6 w-6" />,
-    title: "Latihan AI (Beta)",
-    desc: "Soal latihan coding yang dibuat AI sesuai roadmapmu untuk menguji pemahaman setelah tiap fase.",
+    title: "Latihan Sintaks",
+    desc: "Soal latihan coding yang dibuat AI sesuai roadmapmu untuk menguji pemahaman kamu.",
   },
   {
     icon: <FiSettings className="h-6 w-6" />,
-    title: "Onboarding Personalisasi",
-    desc: "Cukup isi preferensi sekali — Pandu menyesuaikan tingkat kesulitan, kepadatan task, dan target durasi harianmu.",
+    title: "Personalisasi",
+    desc: "Cukup isi preferensi — Pandu akan menyesuaikan To-do harian, kepadatan task, dan target durasi harianmu.",
   },
 ];
 
 export interface Step {
   step: string;
-  icon: ReactNode;
   title: string;
   desc: string;
 }
@@ -85,27 +84,23 @@ export interface Step {
 export const STEPS: Step[] = [
   {
     step: "01",
-    icon: <FiSettings className="h-6 w-6" />,
     title: "Isi Preferensi",
-    desc: "Pilih goal belajar, target waktu (7–90 hari), skill saat ini, dan jam belajar per hari.",
+    desc: "Pilih goal belajar, target waktu, skill saat ini, dan jam belajar per hari.",
   },
   {
     step: "02",
-    icon: <FaRobot className="h-6 w-6" />,
     title: "AI Bikin Roadmap",
     desc: "AI menyusun roadmap berfase berdasarkan preferensimu, langkah demi langkah.",
   },
   {
     step: "03",
-    icon: <FiCalendar className="h-6 w-6" />,
     title: "Task Harian Muncul",
-    desc: "Dapat to-do list per 7 hari, lengkap dengan durasi dan sumber belajar yang actionable.",
+    desc: "AI buatin kamu to-do list per 7 hari, lengkap dengan durasi dan sumber belajar yang actionable.",
   },
   {
     step: "04",
-    icon: <FiTrendingUp className="h-6 w-6" />,
     title: "Belajar & Pantau",
-    desc: "Kerjakan task, jaga streak, dan lihat progress kamu naik setiap hari. Lanjut ke fase berikutnya saat siap.",
+    desc: "Kerjakan task, jaga streak, coba latihan dan lihat progress kamu naik setiap hari. Lanjut ke fase berikutnya saat siap.",
   },
 ];
 
@@ -123,13 +118,13 @@ export const PERSONAS: Persona[] = [
   },
   {
     icon: <FaCompass className="h-6 w-6" />,
-    title: "Self-taught yang Stuck",
-    desc: "Sudah belajar sedikit tapi tidak terstruktur, sering “tutorial hopping”. Pandu merapikan semuanya jadi rencana.",
+    title: "Belajar Tidak Terarah",
+    desc: "Sudah belajar sedikit tapi tidak terstruktur, sering “tutorial hopping”. Pandu merapikan semuanya buat kamu.",
   },
   {
     icon: <FaGraduationCap className="h-6 w-6" />,
-    title: "Career Switcher",
-    desc: "Ingin pindah karier ke tech dengan target waktu jelas — misal 30, 60, atau 90 hari — dan butuh roadmap.",
+    title: "Pindah Bidang",
+    desc: "Ingin pindah bidang ke tech lain namun kebingungan untuk memulai darimana dan apa saja yang harus dipelajari.",
   },
 ];
 

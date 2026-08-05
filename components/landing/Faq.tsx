@@ -14,7 +14,7 @@ export default function Faq({ items = FAQS }: FaqProps) {
 
   return (
     <section id="faq" className="scroll-mt-20 border-t border-border bg-muted/40 py-20 sm:py-24">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 font-inter">
         <SectionHeading eyebrow="FAQ" title="Pertanyaan yang Sering Diajukan" />
 
         <div className="mt-10 space-y-3">

@@ -1,12 +1,22 @@
-import { FiArrowRight, FiCheckCircle, FiChevronDown } from "react-icons/fi";
-import { FaFire, FaRobot } from "react-icons/fa";
+"use client";
+
+import { useState } from "react";
+import { FiArrowRight, FiCheck, FiChevronDown } from "react-icons/fi";
+import { FaFire } from "react-icons/fa";
 import Link from "next/link";
 
 interface HeroTask {
+  id: number;
   title: string;
   minutes: number;
   done: boolean;
 }
+
+const INITIAL_TASKS: HeroTask[] = [
+  { id: 1, title: "Pelajari dasar HTML", minutes: 45, done: true },
+  { id: 2, title: "CSS dasar: Pelajari konsep Flexbox pada CSS", minutes: 60, done: false },
+  { id: 3, title: "Pelajari tipe data di Javascript", minutes: 50, done: false },
+];
 
 export default function Hero() {
   return (
@@ -16,10 +26,10 @@ export default function Hero() {
       <div className="pointer-events-none absolute top-40 -right-24 h-80 w-80 rounded-full bg-primary/10 blur-3xl" />
 
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6 pt-16 pb-20 sm:pt-24 sm:pb-28 text-center">
-        <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
+        {/* <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary font-inter">
           <FaRobot className="h-4 w-4" />
           Roadmap belajar programming, dipersonalisasi dengan AI
-        </div>
+        </div> */}
 
         <h1 className="font-inter mt-6 text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-tight text-foreground">
           Belajar Programming Jadi <span className="text-primary">Terarah</span>, Tanpa Bingung
@@ -50,7 +60,7 @@ export default function Hero() {
         </div>
 
         <p className="font-inter mt-4 text-sm text-muted-foreground">
-          Gratis tanpa kartu kredit · Email atau Google · Selesai setup dalam 5 menit
+          Gratis · Email atau Google · Buat hanya dalam 5 menit
         </p>
 
         <HeroMockup />
@@ -60,55 +70,82 @@ export default function Hero() {
 }
 
 function HeroMockup() {
-  const tasks: HeroTask[] = [
-    { title: "Belajar struktur HTML", minutes: 45, done: true },
-    { title: "CSS dasar: selektor & properti", minutes: 60, done: false },
-    { title: "Bangun halaman pertama", minutes: 50, done: false },
-  ];
+  const [tasks, setTasks] = useState<HeroTask[]>(INITIAL_TASKS);
+
+  const completed = tasks.filter((t) => t.done).length;
+  const percent = Math.round((completed / tasks.length) * 100);
+
+  function toggleTask(id: number) {
+    setTasks((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t))
+    );
+  }
 
   return (
-    <div className="pointer-events-none mx-auto mt-14 max-w-3xl text-left">
+    <div className="mx-auto mt-14 max-w-3xl text-left">
       <div className="rounded-2xl border border-border bg-white p-5 shadow-2xl shadow-primary/10">
         <div className="flex items-center justify-between border-b border-border pb-4">
           <div className="flex items-center gap-2">
-            <div className="rounded-lg bg-primary/10 px-3 py-1.5 text-sm font-bold text-primary">
-              🌟 Goal: Web Developer · 30 hari
+            <div className="rounded-lg bg-primary/10 px-3 py-1.5 text-sm font-bold text-primary font-inter">
+              Goal: Web Developer · 30 hari
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded-lg bg-orange-50 px-3 py-1.5 text-sm font-bold text-orange-600">
-              <FaFire className="h-4 w-4" /> Streak 7
+            <span className="inline-flex items-center gap-1 rounded-lg bg-orange-50 px-3 py-1.5 text-md font-bold text-orange-600 font-inter">
+              <FaFire className="h-4 w-4" /> 7
             </span>
-            <span className="inline-flex items-center rounded-lg bg-emerald-50 px-3 py-1.5 text-sm font-bold text-emerald-600">
-              43%
+            <span
+              className="inline-flex items-center rounded-lg bg-emerald-50 px-3 py-1.5 text-md font-bold text-emerald-600 min-w-[3rem] justify-center font-inter"
+              aria-live="polite"
+            >
+              {percent}%
             </span>
           </div>
         </div>
 
         <div className="mt-4 flex items-center gap-3">
           <span className="font-inter rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground">
-            Task Hari ke-7
+            Tugas Hari ke-5
           </span>
-          <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-muted">
-            <div className="h-full w-[70%] rounded-full bg-primary" />
+          <div
+            className="h-2.5 flex-1 overflow-hidden rounded-full bg-muted"
+            role="progressbar"
+            aria-valuenow={percent}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label="Progress tugas"
+          >
+            <div
+              className="h-full rounded-full bg-primary transition-all duration-300 ease-out"
+              style={{ width: `${percent}%` }}
+            />
           </div>
-          <span className="font-inter text-xs text-muted-foreground">2/3 selesai</span>
+          <span className="font-inter text-xs text-muted-foreground" aria-live="polite">
+            {completed}/{tasks.length} selesai
+          </span>
         </div>
 
         <div className="mt-4 space-y-3">
           {tasks.map((t) => (
-            <div key={t.title} className="flex items-center gap-3 rounded-xl border border-border p-3.5">
-              <span
-                className={`flex h-6 w-6 items-center justify-center rounded-md border ${
+            <div
+              key={t.id}
+              className="flex items-center gap-3 rounded-xl border border-border p-3.5 transition-colors"
+            >
+              <button
+                type="button"
+                onClick={() => toggleTask(t.id)}
+                aria-pressed={t.done}
+                aria-label={`Tandai "${t.title}" ${t.done ? "belum selesai" : "selesai"}`}
+                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition-all cursor-pointer ${
                   t.done
                     ? "border-primary bg-primary text-primary-foreground"
-                    : "border-muted-foreground/40 bg-white"
+                    : "border-muted-foreground/40 bg-white hover:border-primary hover:bg-primary/10"
                 }`}
               >
-                {t.done && <FiCheckCircle className="h-4 w-4" />}
-              </span>
+                {t.done && <FiCheck className="h-4 w-4" strokeWidth={3} />}
+              </button>
               <span
-                className={`font-inter text-sm font-medium ${
+                className={`font-inter text-sm font-medium transition-colors ${
                   t.done ? "text-muted-foreground line-through" : "text-foreground"
                 }`}
               >

@@ -22,21 +22,20 @@ export default function Navbar({ links = NAV_LINKS }: NavbarProps) {
           <Logo priority widthClassName="w-[6rem] sm:w-[7.5rem]" />
         </Link>
 
-        {/* Desktop nav links */}
-        <div className="hidden md:flex items-center gap-8">
-          {links.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="font-inter text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-            >
-              {link.label}
-            </a>
-          ))}
-        </div>
-
         {/* Desktop CTA */}
         <div className="hidden md:flex items-center gap-3">
+          {/* Desktop nav links */}
+          <div className="hidden md:flex items-center gap-8 mr-5">
+            {links.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                className="font-inter text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
           <Link
             href="/sign-in"
             className="font-inter text-sm font-semibold text-foreground px-4 py-2 rounded-lg border border-border bg-background hover:bg-muted transition-colors cursor-pointer"

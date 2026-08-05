@@ -24,7 +24,7 @@ interface FeaturesProps {
 export default function Features({ features = FEATURES }: FeaturesProps) {
   return (
     <section id="fitur" className="scroll-mt-20 py-20 sm:py-24">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 font-inter">
         <SectionHeading
           eyebrow="Fitur Utama"
           title="Semua yang kamu butuhkan untuk belajar konsisten"

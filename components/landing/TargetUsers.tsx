@@ -24,11 +24,11 @@ interface TargetUsersProps {
 export default function TargetUsers({ personas = PERSONAS }: TargetUsersProps) {
   return (
     <section id="untuk-siapa" className="scroll-mt-20 py-20 sm:py-24">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 font-inter">
         <SectionHeading
           eyebrow="Untuk Siapa"
           title="Pandu hadir untuk perjalanan belajarmu"
-          subtitle="Apapun titik awalmu, Pandu menyesuaikan rencana belajar dengan kondisi kamu."
+          subtitle="Apapun titik awalmu, Pandu akan menyesuaikan rencana belajar dengan kondisi kamu."
         />
 
         <div className="mt-12 grid gap-6 md:grid-cols-3">
