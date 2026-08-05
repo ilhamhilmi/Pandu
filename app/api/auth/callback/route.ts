@@ -1,6 +1,5 @@
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
@@ -8,43 +7,20 @@ export async function GET(request: Request) {
     const code = searchParams.get("code");
 
     if (code) {
-        const cookieStore = await cookies();
-        const supabase = createServerClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-            {
-                cookies: {
-                    getAll() {
-                        return cookieStore.getAll();
-                    },
-                    setAll(cookiesToSet) {
-                        cookiesToSet.forEach(({ name, value, options }) =>
-                            cookieStore.set(name, value, options)
-                        );
-                    },
-                },
-            }
-        );
+        const supabase = await createClient();
+        // exchangeCodeForSession already returns the session's user,
+        // so we avoid an extra getUser() round-trip.
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
-        if (!error) {
-            // Get the authenticated user from the session
-            const {
-                data: { user },
-            } = await supabase.auth.getUser();
+        if (!error && data.user) {
+            // Check if user already has a preference saved
+            const preference = await prisma.userPreference.findUnique({
+                where: { userId: data.user.id },
+            });
 
-            if (user) {
-                // Check if user already has a preference saved
-                const preference = await prisma.userPreference.findUnique({
-                    where: { userId: user.id },
-                });
-
-                // Redirect to dashboard if user has data, otherwise onboarding
-                const redirectPath = preference ? "/dashboard" : "/onboarding";
-                return NextResponse.redirect(`${origin}${redirectPath}`);
-            }
-
-            return NextResponse.redirect(`${origin}/dashboard`);
+            // Redirect to dashboard if user has data, otherwise onboarding
+            const redirectPath = preference ? "/dashboard" : "/onboarding";
+            return NextResponse.redirect(`${origin}${redirectPath}`);
         }
     }
 
