@@ -21,12 +21,12 @@ export default function Logo({
   return (
     <div
       className={cn("relative h-9", widthClassName, className)}
-      aria-label="Pandu - Ruang Belajar"
+      aria-label="Pandu - Belajar Programming Jadi Terarah"
       role="img"
     >
       <Image
         src="/icon/Pandu_Icon_Wordmark.png"
-        alt="Pandu - Ruang Belajar"
+        alt="Pandu - Belajar Programming Jadi Terarah"
         fill
         priority={priority}
         sizes={widthClassName}
