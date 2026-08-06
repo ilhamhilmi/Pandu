@@ -18,9 +18,10 @@ export default function CtaBanner({
   return (
     <section className="py-20 sm:py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="relative overflow-hidden rounded-3xl bg-primary px-6 py-16 sm:px-16 text-center">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-teal-500 to-teal-600 px-6 py-16 sm:px-16 text-center">
           <div className="pointer-events-none absolute -top-16 -right-16 h-64 w-64 rounded-full bg-white/10 blur-2xl" />
-          <div className="pointer-events-none absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-white/10 blur-2xl" />
+          <div className="pointer-events-none absolute -bottom-16 -left-16 h-72 w-72 rounded-full bg-violet-300/20 blur-2xl" />
+          <div className="pointer-events-none absolute -top-10 left-1/4 h-56 w-56 rounded-full bg-amber-200/20 blur-2xl" />
           <div className="relative">
             <h2 className="font-inter text-3xl sm:text-4xl font-bold text-primary-foreground">{title}</h2>
             <p className="font-inter mx-auto mt-4 max-w-xl text-primary-foreground/90">{subtitle}</p>

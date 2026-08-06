@@ -3,12 +3,19 @@ import { PERSONAS, type Persona } from "./content";
 
 export interface PersonaCardProps {
   persona: Persona;
+  chipClass?: string;
 }
 
-export function PersonaCard({ persona }: PersonaCardProps) {
+const PERSONA_CHIPS = [
+  "bg-teal-100 text-teal-600",
+  "bg-violet-100 text-violet-600",
+  "bg-amber-100 text-amber-600",
+];
+
+export function PersonaCard({ persona, chipClass }: PersonaCardProps) {
   return (
-    <div className="rounded-2xl border border-border bg-white p-6 text-center">
-      <div className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+    <div className="rounded-2xl border border-border bg-white p-6 text-center transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/10">
+      <div className={`mx-auto inline-flex h-14 w-14 items-center justify-center rounded-2xl ${chipClass}`}>
         {persona.icon}
       </div>
       <h3 className="font-inter mt-5 text-lg font-bold text-foreground">{persona.title}</h3>
@@ -23,7 +30,7 @@ interface TargetUsersProps {
 
 export default function TargetUsers({ personas = PERSONAS }: TargetUsersProps) {
   return (
-    <section id="untuk-siapa" className="scroll-mt-20 py-20 sm:py-24">
+    <section id="untuk-siapa" className="scroll-mt-20 bg-gradient-to-b from-teal-50/40 to-white py-20 sm:py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 font-inter">
         <SectionHeading
           eyebrow="Untuk Siapa"
@@ -32,8 +39,8 @@ export default function TargetUsers({ personas = PERSONAS }: TargetUsersProps) {
         />
 
         <div className="mt-12 grid gap-6 md:grid-cols-3">
-          {personas.map((persona) => (
-            <PersonaCard key={persona.title} persona={persona} />
+          {personas.map((persona, i) => (
+            <PersonaCard key={persona.title} persona={persona} chipClass={PERSONA_CHIPS[i % PERSONA_CHIPS.length]} />
           ))}
         </div>
       </div>

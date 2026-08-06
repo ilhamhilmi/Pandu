@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useLenis } from "lenis/react";
 import {
   FiArrowRight,
   FiBookOpen,
@@ -28,6 +29,17 @@ export default function Navbar({ links = NAV_LINKS }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const lenis = useLenis();
+
+  // Smooth-scroll to an in-page anchor using the global Lenis instance.
+  // The sticky navbar is ~72px tall, so we offset the scroll target so the
+  // section reveals below the header instead of being hidden behind it.
+  function handleNavClick(e: React.MouseEvent, href: string) {
+    if (href.startsWith("#")) {
+      e.preventDefault();
+      lenis?.scrollTo(href, { offset: -72, duration: 1.2 });
+    }
+  }
 
   useEffect(() => {
     let isMounted = true;
@@ -88,6 +100,7 @@ export default function Navbar({ links = NAV_LINKS }: NavbarProps) {
               <a
                 key={link.href}
                 href={link.href}
+                onClick={(e) => handleNavClick(e, link.href)}
                 className="font-inter text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
               >
                 {link.label}
@@ -176,7 +189,10 @@ export default function Navbar({ links = NAV_LINKS }: NavbarProps) {
             <a
               key={link.href}
               href={link.href}
-              onClick={() => setMobileOpen(false)}
+              onClick={(e) => {
+                setMobileOpen(false);
+                handleNavClick(e, link.href);
+              }}
               className="block font-inter text-sm font-medium text-foreground px-3 py-2.5 rounded-lg hover:bg-muted"
             >
               {link.label}

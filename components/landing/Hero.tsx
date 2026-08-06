@@ -6,6 +6,7 @@ import { FiArrowRight, FiCheck, FiChevronDown } from "react-icons/fi";
 import { FaFire } from "react-icons/fa";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
+import { Highlighter } from "@/components/ui/highlighter"
 
 interface HeroTask {
   id: number;
@@ -47,10 +48,12 @@ export default function Hero() {
   const primaryHref = user ? "/dashboard" : "/sign-up";
 
   return (
-    <section className="relative overflow-hidden">
+    <section className="relative overflow-hidden bg-gradient-to-b from-teal-50/60 via-white to-white">
       {/* decorative gradient blobs */}
-      <div className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
-      <div className="pointer-events-none absolute top-40 -right-24 h-80 w-80 rounded-full bg-primary/10 blur-3xl" />
+      <div className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full bg-teal-300/40 blur-3xl" />
+      <div className="pointer-events-none absolute top-40 -right-24 h-80 w-80 rounded-full bg-violet-300/40 blur-3xl" />
+      <div className="pointer-events-none absolute top-2 left-1/3 h-64 w-64 rounded-full bg-amber-200/40 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-8 -left-8 h-64 w-64 rounded-full bg-sky-300/40 blur-3xl" />
 
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6 pt-16 pb-20 sm:pt-24 sm:pb-28 text-center">
         {/* <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary font-inter">
@@ -59,12 +62,12 @@ export default function Hero() {
         </div> */}
 
         <h1 className="font-inter mt-6 text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-tight text-foreground">
-          Belajar <span className="font-mono">Programming</span> Lebih <span className="text-primary">Terarah</span>, Tanpa Bingung
+          Belajar <span className="font-mono">Programming</span> Lebih <Highlighter action="highlight" color="#FF9800"><h1>Terarah</h1></Highlighter>, Tanpa Bingung
           <br className="hidden sm:block" /> Mulai dari Mana
         </h1>
 
         <p className="font-inter mx-auto mt-6 max-w-2xl text-base sm:text-lg text-muted-foreground">
-          Pandu menyusun <strong className="text-foreground">roadmap belajar harian yang terstruktur dan progresif</strong>{" "}
+          Pandu menyusun <strong className="text-foreground">roadmap belajar harian yang terstruktur dan progresif menggunakan AI</strong>{" "}
           sesuai tujuan, target waktu, dan jam belajarmu. Kamu tinggal belajar hari demi hari —
           Pandu yang merencanakan.
         </p>
@@ -119,7 +122,7 @@ function HeroMockup() {
         ease: "easeInOut",
       }}
       className="mx-auto mt-14 max-w-3xl text-left">
-      <div className="rounded-2xl border border-border bg-white p-5 shadow-2xl shadow-primary/10">
+      <div className="rounded-2xl border border-border bg-white/90 p-5 shadow-2xl shadow-teal-500/20 backdrop-blur">
         <div className="flex items-center justify-between border-b border-border pb-4">
           <div className="flex items-center gap-2">
             <div className="rounded-lg bg-primary/10 px-3 py-1.5 text-sm font-bold text-primary font-inter">
@@ -173,8 +176,8 @@ function HeroMockup() {
                 aria-pressed={t.done}
                 aria-label={`Tandai "${t.title}" ${t.done ? "belum selesai" : "selesai"}`}
                 className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition-all cursor-pointer ${t.done
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-muted-foreground/40 bg-white hover:border-primary hover:bg-primary/10"
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-muted-foreground/40 bg-white hover:border-primary hover:bg-primary/10"
                   }`}
               >
                 {t.done && <FiCheck className="h-4 w-4" strokeWidth={3} />}
