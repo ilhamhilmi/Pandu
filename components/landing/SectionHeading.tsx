@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { FiZap } from "react-icons/fi";
 
 interface SectionHeadingProps {
   eyebrow: string;
@@ -7,6 +6,7 @@ interface SectionHeadingProps {
   subtitle?: string;
   icon?: ReactNode;
 }
+
 
 /** Reusable centered section heading with an optional eyebrow pill. */
 export default function SectionHeading({

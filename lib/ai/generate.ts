@@ -510,14 +510,17 @@ GOAL PENGGUNA: ${input.goal}
 TOPIK REFERENSI: ${topicsSummary}
 
 PERSYARATAN:
-- Buat 5-10 soal (pilih jumlah acak di rentang itu).
-- Setiap soal menampilkan potongan kode (code) yang RELEVAN dengan goal/topik di atas. Gunakan bahasa yang sesuai (contoh: HTML, CSS, JavaScript, atau lainnya sesuai goal).
+- Buat 5 soal berbeda dari soal sebelumnya.
+- Setiap soal menampilkan potongan kode (code) yang RELEVAN dengan goal/topik di atas. Gunakan bahasa yang sesuai (contoh: HTML, CSS, JavaScript, Python, SQL atau lainnya sesuai dengan goal pengguna).
 - Di dalam code terdapat SATU bagian rumpang yang dilambangkan dengan empat garis bawah: "____". Bagian yang dirumpang bisa berupa nama tag, atribut, properti CSS, keyword, method, dsb.
-- Setiap soal memiliki 2-4 pilihan jawaban (options) sebagai array string.
-- Tepat SATU jawaban benar terletak pada indeks correctIndex (0-based) di dalam array options. Pilihan-pilihan lain harus PLASIBEL (seolah-olah benar) namun salah.
+- Setiap soal memiliki 2-3 pilihan jawaban (options) sebagai array string.
+- Tepat SATU jawaban benar terletak pada indeks correctIndex (0-based) di dalam array options. Pilihan-pilihan selain benar harus TIDAK PLASIBEL (Mutlak Salah).
 - explanation: Jelaskan dengan bahasa Indonesia (ringkas namun jelas) KENAPA jawaban tersebut benar, dan bila perlu mengapa pilihan lain salah.
 - instruction (opsional): instruksi singkat untuk soal, contoh: "Lengkapi sintaks berikut menggunakan CSS Flexbox untuk pusatkan elemen secara horizontal.".
-
+- Blank harus memiliki jawaban yang TIDAK ambigu — pastikan hanya satu opsi yang benar secara sintaks maupun konteks kode di sekitarnya.
+- JANGAN membuat soal yang bagian rumpangnya merupakan identifier yang dapat ditentukan bebas oleh programmer, seperti nama variabel, fungsi, class, parameter, object, maupun file.
+- BUAT JAWABAN YANG MEMANG MUTLAK ADANYA.
+- JANGAN BUAT SOAL YANG SAMA TIAP DI GENERATE
 OUTPUT HANYA JSON ARRAY, tanpa markdown, tanpa teks lain. Format setiap elemen:
 {
   "code": "display: ____;",
