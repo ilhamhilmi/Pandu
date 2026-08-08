@@ -46,6 +46,7 @@ export default function Hero() {
   }, []);
 
   const primaryHref = user ? "/dashboard" : "/sign-up";
+  const label = user ? "Ruang Belajar" : "Mulai Belajar Gratis"
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-teal-50/60 via-white to-white">
@@ -77,7 +78,7 @@ export default function Hero() {
             href={primaryHref}
             className="font-inter inline-flex w-full sm:w-auto items-center justify-center gap-2 bg-primary text-primary-foreground px-7 py-3.5 rounded-xl text-base font-semibold hover:bg-primary-hover transition-colors cursor-pointer"
           >
-            Mulai Belajar Gratis
+            {label}
             <FiArrowRight className="h-5 w-5" />
           </Link>
           <a

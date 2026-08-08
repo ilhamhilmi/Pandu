@@ -385,7 +385,7 @@ ${roadmapSummary}
 ${guidance}
 Setiap task harus memiliki:
 - title: Nama task dalam Bahasa Indonesia. Tulis sebagai PERINTAH yang jelas dan bisa langsung diikuti pemula (otodidak). Mulai dengan kata kerja aksi seperti "Pelajari...", "Coba...", "Baca...", "Praktikkan...", "Buat...", "Tonton...", atau "Latih..." diikuti objek yang konkret (konsep/materi).
-  - CONTOH BENAR: "Pelajari Konsep HTML", "Coba buat halaman web pertama dengan HTML", "Praktikkan membuat tabel dan formulir di HTML".
+  - CONTOH BENAR: "Pelajari Konsep HTML", "Pelajari tentang elemen semantik di HTML", "Praktikkan membuat tabel dan formulir di HTML".
   - CONTOH SALAH (terlalu umum/ambigu, JANGAN dipakai): "Konfigurasi HTML", "Membuat komponen sederhana", "Setup environment".
 - duration_minutes: Estimasi durasi dalam menit (angka, antara 15-${g.maxPerTask})
 - resources: Array sumber belajar artikel (minimal 1, maksimal 2) dengan:
