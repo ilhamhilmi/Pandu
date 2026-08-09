@@ -108,39 +108,50 @@ function SkeletonTodoList({ count = 3 }: { count?: number }) {
 
 function SkeletonRoadmap({ count = 3 }: { count?: number }) {
   return (
-    <div className="space-y-4">
-      <div className="bg-white rounded-xl border border-border p-5 animate-pulse mb-6">
+    <div className="animate-pulse">
+      <div className="bg-white rounded-xl border border-border p-4 sm:p-5 mb-6">
         <div className="flex items-center justify-between mb-3">
           <div className="h-5 w-40 bg-muted rounded" />
           <div className="h-4 w-24 bg-muted rounded" />
         </div>
         <div className="h-2.5 w-full bg-muted rounded-full" />
       </div>
-      {Array.from({ length: count }).map((_, i) => (
-        <div
-          key={i}
-          className="bg-white rounded-xl border border-border animate-pulse"
-        >
-          <div className="flex items-center justify-between p-5 border-b border-border">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-muted" />
-              <div className="space-y-2">
-                <div className="h-5 w-40 bg-muted rounded" />
-                <div className="h-3 w-24 bg-muted rounded" />
+
+      <div className="flex items-center gap-3 mb-5">
+        <div className="h-11 w-11 rounded-xl bg-muted" />
+        <div className="space-y-2">
+          <div className="h-5 w-44 bg-muted rounded" />
+          <div className="h-3 w-28 bg-muted rounded" />
+        </div>
+      </div>
+
+      <div className="relative">
+        <div className="absolute left-[19px] top-3 bottom-4 w-0.5 bg-muted" />
+        <div className="space-y-6">
+          {Array.from({ length: count }).map((_, i) => (
+            <div key={i} className="relative flex items-start gap-4 sm:gap-5">
+              <div className="h-10 w-10 shrink-0 rounded-full bg-muted" />
+              <div className="flex-1 bg-white rounded-xl border border-border p-4 sm:p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+                  <div className="space-y-2">
+                    <div className="h-5 w-40 bg-muted rounded" />
+                    <div className="h-3 w-24 bg-muted rounded" />
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="h-6 w-20 bg-muted rounded-full" />
+                    <div className="h-6 w-16 bg-muted rounded-full" />
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {[1, 2, 3].map((j) => (
+                    <div key={j} className="h-6 w-24 bg-muted rounded-full" />
+                  ))}
+                </div>
               </div>
             </div>
-            <div className="h-4 w-12 bg-muted rounded" />
-          </div>
-          <div className="px-5 py-3 space-y-3">
-            {[1, 2, 3].map((j) => (
-              <div key={j} className="flex items-center gap-3">
-                <div className="h-4 w-4 rounded-full bg-muted" />
-                <div className="h-4 w-3/4 bg-muted rounded" />
-              </div>
-            ))}
-          </div>
+          ))}
         </div>
-      ))}
+      </div>
     </div>
   );
 }

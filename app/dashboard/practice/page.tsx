@@ -122,7 +122,7 @@ export default function PracticePage() {
             <div className="flex flex-col items-center gap-4 mt-4">
               <FiRefreshCw className="h-10 w-10 text-primary animate-spin" />
               <p className="font-inter text-sm text-muted-foreground">
-                Membuat soal latihan khusus untukmu...
+                AI lagi buatin soal latihan khusus untukmu...
               </p>
             </div>
           </div>
@@ -354,7 +354,7 @@ export default function PracticePage() {
                     isCorrect ? "text-emerald-700" : "text-red-600"
                   }`}
                 >
-                  {isCorrect ? "Benar! 🎉" : "Belum tepat."}
+                  {isCorrect ? "Benar!" : "Belum tepat."}
                 </p>
                 <p className="font-inter text-sm text-foreground mt-1">
                   Jawaban yang benar:{" "}
