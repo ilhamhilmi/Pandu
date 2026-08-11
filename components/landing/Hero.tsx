@@ -7,6 +7,8 @@ import { FaFire } from "react-icons/fa";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
 import { Highlighter } from "@/components/ui/highlighter"
+import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern"
+import { ShimmerButton } from "@/components/ui/shimmer-button"
 
 interface HeroTask {
   id: number;
@@ -51,10 +53,7 @@ export default function Hero() {
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-teal-50/60 via-white to-white">
       {/* decorative gradient blobs */}
-      <div className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full bg-teal-300/40 blur-3xl" />
-      <div className="pointer-events-none absolute top-40 -right-24 h-80 w-80 rounded-full bg-violet-300/40 blur-3xl" />
-      <div className="pointer-events-none absolute top-2 left-1/3 h-64 w-64 rounded-full bg-amber-200/40 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-8 -left-8 h-64 w-64 rounded-full bg-sky-300/40 blur-3xl" />
+      <AnimatedGridPattern />
 
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6 pt-16 pb-20 sm:pt-24 sm:pb-28 text-center">
         {/* <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary font-inter">
@@ -76,10 +75,12 @@ export default function Hero() {
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link
             href={primaryHref}
-            className="font-inter inline-flex w-full sm:w-auto items-center justify-center gap-2 bg-primary text-primary-foreground px-7 py-3.5 rounded-xl text-base font-semibold hover:bg-primary-hover transition-colors cursor-pointer"
+            className="w-full sm:w-auto"
           >
-            {label}
-            <FiArrowRight className="h-5 w-5" />
+            <ShimmerButton className="font-inter inline-flex w-full sm:w-auto items-center justify-center gap-2 bg-primary text-primary-foreground px-7 py-3.5 rounded-xl text-base font-semibold hover:bg-primary-hover transition-colors cursor-pointer">
+              {label}
+              <FiArrowRight className="h-5 w-5" />
+            </ShimmerButton>
           </Link>
           <a
             href="#cara-kerja"
