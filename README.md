@@ -35,7 +35,7 @@ yang sudah ada di internet (w3schools, MDN, YouTube, dsb).
 | **Personalisasi** | Form preferensi belajar: goal, target waktu, skill, jam belajar/hari |
 | **AI Roadmap** | Generate roadmap belajar berfase menggunakan Groq AI (`Llama-3.3-70b-versatile`) |
 | **To Do Harian** | Task harian per fase 7 hari yang dibuat AI dengan sistem lock/unlock berbasis penyelesaian |
-| **Syntax Puzzle** | Latihan Puzzle Sintaks yang dibuat oleh AI untuk kamu, menyesuaikan target belajar kamu |
+| **AI Syntax Puzzle** | Latihan Puzzle Sintaks yang dibuat oleh AI untuk kamu, menyesuaikan target belajar kamu |
 
 ## ⚙️ Teknologi yang Digunakan
 
