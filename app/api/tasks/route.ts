@@ -33,12 +33,28 @@ export async function GET() {
       tasks: dailyTask.tasks,
     }));
 
+    // Reasoning comes from the latest generated batch (the max-day record),
+    // since daily tasks are generated on-demand in rolling 7-day batches.
+    // Fall back to the last record that has a reasoning, if any.
+    const latestDay = allTasks.length > 0 ? allTasks[allTasks.length - 1] : null;
+    let reasoning =
+      typeof latestDay?.reasoning === "string" && latestDay.reasoning.trim()
+        ? latestDay.reasoning.trim()
+        : "";
+    if (!reasoning) {
+      const recordWithReasoning = [...allTasks]
+        .reverse()
+        .find((t) => typeof t.reasoning === "string" && t.reasoning.trim());
+      reasoning = recordWithReasoning?.reasoning?.trim() || "";
+    }
+
     return NextResponse.json(
       {
         success: true,
         data: {
           tasksByDay,
           targetDays,
+          reasoning,
         },
       },
       { status: 200 }

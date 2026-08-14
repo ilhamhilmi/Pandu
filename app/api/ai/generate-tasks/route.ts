@@ -89,7 +89,7 @@ export async function POST(request: Request) {
 
     // 6. Generate daily tasks for this batch (7 days)
     const daysToGenerate = Math.min(DAYS_PER_BATCH, totalDays - startDay + 1);
-    const taskBatches = await generateDailyTasksBatch(
+    const { batches, reasoning } = await generateDailyTasksBatch(
       phases,
       startDay,
       daysToGenerate,
@@ -101,14 +101,16 @@ export async function POST(request: Request) {
     const newDailyTasks: Array<{
       userId: string;
       day: number;
+      reasoning: string;
       tasks: Array<{
         title: string;
         duration_minutes: number;
         resources: Array<{ type: "video" | "article"; title: string; url: string }>;
       }>;
-    }> = taskBatches.map((batch) => ({
+    }> = batches.map((batch) => ({
       userId: user.id,
       day: batch.day,
+      reasoning,
       tasks: batch.tasks.map((t) => ({
         title: t.title,
         duration_minutes: t.duration_minutes,

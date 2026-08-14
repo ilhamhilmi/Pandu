@@ -67,6 +67,7 @@ export default function DashboardPage() {
   const [generatingNext, setGeneratingNext] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showDifficultyModal, setShowDifficultyModal] = useState(false);
+  const [reasoning, setReasoning] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -89,6 +90,7 @@ export default function DashboardPage() {
       if (tasksRes.ok) {
         const tasksData = await tasksRes.json();
         setAllDayTasks(tasksData.data.tasksByDay);
+        setReasoning(tasksData.data.reasoning || "");
       }
     } catch {
       setError("Gagal memuat data");
@@ -349,6 +351,23 @@ export default function DashboardPage() {
           <Link href="/dashboard/library" className="underline">Perpustakaan</Link> ya.
         </p>
       </div>
+
+      {/* AI Reasoning: mengapa AI menyarankan tugas ini */}
+      {reasoning && (
+        <div className="flex items-start gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4 sm:p-5 mb-6 sm:mb-8">
+          <span className="mt-0.5 shrink-0 text-primary">
+            <FiInfo className="h-5 w-5" />
+          </span>
+          <div>
+            <h2 className="font-inter text-sm font-semibold text-foreground mb-1">
+              Mengapa AI menyarankan tugas ini?
+            </h2>
+            <p className="font-inter text-sm text-muted-foreground leading-relaxed">
+              {reasoning}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* All Day Cards */}
       <div className="space-y-4">

@@ -50,6 +50,7 @@ model DailyTask {
   userId    String
   day       Int      // 1, 2, 3, ... targetDays
   tasks     Json     // Array of task objects: [{title, duration_minutes, resources, completed}]
+  reasoning String?  // Alasan AI mengapa task pada batch ini dipilih
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

@@ -317,7 +317,7 @@ export default function RoadmapPage() {
             </div>
             <div className="flex-1 min-w-0 bg-gradient-to-br from-primary/10 via-teal-50/60 to-white rounded-xl border border-primary/30 p-4 sm:p-5">
               <h3 className="font-inter text-base sm:text-lg font-bold text-primary">
-                🎉 Goal Tercapai!
+                Goal Tercapai!
               </h3>
               <p className="font-inter text-sm text-muted-foreground mt-1">
                 Selesaikan {phases.length} fase ({roadmap.targetDays} hari) untuk

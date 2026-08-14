@@ -361,12 +361,16 @@ export async function generateDailyTasksBatch(
   totalDays: number,
   hoursPerDay?: number | null,
   difficultyFeedback?: string
-): Promise<DailyTaskBatch[]> {
+): Promise<{ batches: DailyTaskBatch[]; reasoning: string }> {
   const roadmapSummary = roadmap
     .map(
       (phase) => `${phase.week} - ${phase.title}: ${phase.topics.join(", ")}`
     )
     .join("\n");
+
+  const hoursPerDayLabel = hoursPerDay
+    ? `${hoursPerDay} jam per hari`
+    : "waktu fleksibel";
 
   const g = buildDailyTaskGuidance(hoursPerDay);
   const guidance = buildTaskGuidancePrompt(hoursPerDay, difficultyFeedback);
@@ -406,34 +410,53 @@ PENTING UNTUK URL SUMBER BELAJAR (HANYA ARTIKEL):
 - Jika ragu suatu URL valid, lebih baik TIDAK menyertakannya daripada mengarang URL.
 - Prioritaskan dokumentasi resmi dan artikel berbahasa Indonesia.
 
-OUTPUT HANYA JSON ARRAY, tanpa markdown, tanpa teks lain. Format:
-[
-  {
-    "day": ${startDay},
-    "tasks": [
-      {
-        "title": "Nama Task",
-        "duration_minutes": 45,
-        "resources": [
-          {
-            "type": "article",
-            "title": "HTML Dasar - w3schools",
-            "url": "https://www.w3schools.com/html/"
-          }
-        ]
-      }
-    ]
-  }
-]
+Selain task harian, tulis juga kolom "reasoning" (dalam Bahasa Indonesia, 3-5 kalimat) yang menjelaskan dengan jujur dan transparan KENAPA kamu memilih task-task ini untuk ${dayRange}: pertimbangkan fase roadmap yang sedang dipelajari, progres logis dari pembelajaran, jam belajar yang tersedia (${hoursPerDayLabel}), dan masukan kesulitan dari pengguna (jika ada: "${difficultyFeedback}"). Tujuannya agar pengguna paham alasan di balik saran AI (bukan sekadar menelan mentah-mentah).
+
+OUTPUT HANYA SATU JSON OBJECT, tanpa markdown, tanpa teks lain. Format:
+{
+  "reasoning": "Penjelasan alasan pemilihan task...",
+  "days": [
+    {
+      "day": ${startDay},
+      "tasks": [
+        {
+          "title": "Nama Task",
+          "duration_minutes": 45,
+          "resources": [
+            {
+              "type": "article",
+              "title": "HTML Dasar - w3schools",
+              "url": "https://www.w3schools.com/html/"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
 
 Pastikan setiap hari dari ${startDay} sampai ${batchEnd} ada dalam output. Buat progres yang logis mengikuti roadmap.`;
 
   const rawText = await callGroqAPI(prompt, { maxTokens: 8192 });
   const jsonStr = extractJSON(rawText);
-  const batchResult = JSON.parse(jsonStr) as DailyTaskBatch[];
+  const parsedResult = JSON.parse(jsonStr);
+
+  // Support both the new object shape ({ reasoning, days }) and
+  // a plain array (older/edge responses that ignore the reason field).
+  const dayList: DailyTaskBatch[] = Array.isArray(parsedResult)
+    ? parsedResult
+    : (parsedResult?.days ?? []);
+  const reasoning: string =
+    typeof parsedResult?.reasoning === "string" && parsedResult.reasoning.trim()
+      ? parsedResult.reasoning.trim()
+      : "";
+
+  if (!Array.isArray(dayList) || dayList.length === 0) {
+    throw new Error("Task harian kosong. Coba lagi.");
+  }
 
   // Ensure each task has a resources array and sort by day
-  const batches = batchResult.map((batch) => ({
+  const batches = dayList.map((batch) => ({
     day: batch.day,
     tasks: batch.tasks.map((task) => ({
       ...task,
@@ -443,7 +466,7 @@ Pastikan setiap hari dari ${startDay} sampai ${batchEnd} ada dalam output. Buat 
 
   batches.sort((a, b) => a.day - b.day);
 
-  return batches;
+  return { batches, reasoning };
 }
 
 export interface PracticeQuestion {
