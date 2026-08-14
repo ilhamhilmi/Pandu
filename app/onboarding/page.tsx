@@ -11,10 +11,12 @@ const GOAL_OPTIONS = [
   { value: "web developer", label: "Web Developer" },
   { value: "mobile developer", label: "Mobile Developer" },
   { value: "data science", label: "Data Science" },
+  { value: "frontend developer", label: "Frontend Developer" },
+  { value: "backend developer", label: "Backend Developer" },
   { value: "lainnya", label: "Lainnya" },
 ];
 
-const TARGET_DAYS = [7, 30, 60, 90];
+const TARGET_DAYS = [7, 30, 60];
 
 const SKILL_OPTIONS = [
   { value: "belum tahu apa-apa", label: "Belum tahu apa-apa" },
