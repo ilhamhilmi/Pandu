@@ -43,8 +43,8 @@ export async function POST() {
       });
     }
 
-    // 4. Generate roadmap via AI
-    const phases = await generateRoadmap({
+    // 4. Generate roadmap via AI (termasuk reasoning keseluruhan + saran)
+    const { phases, reasoning } = await generateRoadmap({
       goal: preference.goal,
       goalCustom: preference.goalCustom,
       targetDays: preference.targetDays,
@@ -58,6 +58,7 @@ export async function POST() {
         userId: user.id,
         goal: preference.goal,
         targetDays: preference.targetDays,
+        reasoning,
         phases: phases as unknown as Prisma.InputJsonValue,
       },
     });

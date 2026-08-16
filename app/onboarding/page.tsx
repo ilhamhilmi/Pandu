@@ -8,11 +8,11 @@ import { supabase } from "@/lib/supabase/client";
 import { SkeletonCard } from "@/components/ui/skeleton";
 
 const GOAL_OPTIONS = [
-  { value: "web developer", label: "Web Developer" },
-  { value: "mobile developer", label: "Mobile Developer" },
-  { value: "data science", label: "Data Science" },
-  { value: "frontend developer", label: "Frontend Developer" },
-  { value: "backend developer", label: "Backend Developer" },
+  { value: "Web Developer", label: "Web Developer" },
+  { value: "Mobile Developer", label: "Mobile Developer" },
+  { value: "Data Science", label: "Data Science" },
+  { value: "Frontend Developer", label: "Frontend Developer" },
+  { value: "Backend Developer", label: "Backend Developer" },
   { value: "lainnya", label: "Lainnya" },
 ];
 

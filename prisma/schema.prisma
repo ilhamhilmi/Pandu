@@ -38,6 +38,7 @@ model Roadmap {
   userId     String   @unique
   goal       String
   targetDays Int
+  reasoning  String?  // Alasan keseluruhan roadmap dari AI + saran belajar (Bahasa Indonesia)
   phases     Json     // Array of phase objects: [{title, week, order, topics, duration}]
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt

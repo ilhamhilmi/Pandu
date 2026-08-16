@@ -227,46 +227,113 @@ function buildTaskGuidancePrompt(
   return lines.join("\n");
 }
 
+function buildRoadmapReasoningFallback(
+  phases: RoadmapPhase[],
+  goalLabel: string,
+  targetDays: number,
+  skills: string,
+  hoursPerDay: string
+): string {
+  const pertama = phases[0]?.title ?? "konsep dasar";
+  const terakhir = phases[phases.length - 1]?.title ?? "tujuan akhir";
+  return [
+    `Roadmap untukmu disusun agar bisa belajar "${goalLabel}" dalam target ${targetDays} hari, bertahap dari ${pertama} lalu menuju ${terakhir}.`,
+    `Urutan fase dibuat dengan struktur belajar yang logis: memahami konsep, membangun fondasi, sampai berlatih langsung, dan disesuaikan dengan jam belajar (${hoursPerDay})${skills ? ` serta kemampuanmu di ${skills}` : ""}.`,
+    "Saran saya: tetap konsisten belajar sedikit demi sedikit setiap hari, dan jangan ragu mengulangi materi yang terasa sulit sebelum lanjut ke fase berikutnya.",
+  ].join(" ");
+}
+
+function buildBatchReasoningFallback(
+  startDay: number,
+  batchEnd: number,
+  phases: RoadmapPhase[],
+  hoursPerDayLabel: string,
+  difficultyFeedback: string
+): string {
+  const days =
+    startDay === batchEnd
+      ? `hari ke-${startDay}`
+      : `hari ke-${startDay} sampai hari ke-${batchEnd}`;
+  const fokus = phases.slice(0, 3).map((f) => f.title).join(", ");
+  const feedback = difficultyFeedback.trim()
+    ? ` Masukan kesulitanmu sebelumnya ("${difficultyFeedback.trim()}") juga sudah diperhitungkan, jadi ada penjelasan lebih pada bagian yang kamu rasa sulit.`
+    : "";
+  return [
+    `Untuk ${days}, task harian disusun agar pemahamanmu berkembang bertahap: dimulai dari fokus "${fokus}" lalu bergerak mengikuti roadmap.`,
+    `Jumlah dan durasi task menyesuaikan waktu belajarmu (${hoursPerDayLabel}) sehingga target harian tetap realistis.${feedback}`,
+    "Saran dari saya: kerjakan task sesuai urutan sedikit demi sedikit, dan luangkan waktu praktik langsung supaya materinya semakin nempel.",
+  ].join(" ");
+}
+
 export async function generateRoadmap(
   preference: UserPreference
-): Promise<RoadmapPhase[]> {
+): Promise<{ phases: RoadmapPhase[]; reasoning: string }> {
   const goalLabel =
-    preference.goal === "lainnya" ? preference.goalCustom : preference.goal;
+    preference.goal === "lainnya" ? preference.goalCustom ?? "" : preference.goal;
   const skills = preference.selectedSkills.join(", ");
   const hoursPerDay = preference.hoursPerDay
     ? `${preference.hoursPerDay} jam per hari`
     : "waktu fleksibel";
 
-  const prompt = `Kamu adalah seorang mentor programming yang berpengalaman. Buatkan roadmap belajar yang terstruktur untuk seseorang dengan detail berikut:
+  const prompt = `Kamu adalah seorang mentor programming yang berpengalaman. Buatkan roadmap belajar yang terstruktur dan personal untuk seseorang dengan detail berikut:
 
 Goal: ${goalLabel}
 Target waktu: ${preference.targetDays} hari
 Skill saat ini: ${skills || "Belum tahu apa-apa"}
 Waktu belajar: ${hoursPerDay}
 
-Buatlah roadmap yang terdiri dari beberapa fase/minggu. Setiap fase harus memiliki:
-- title: Nama fase (dalam Bahasa Indonesia)
-- week: Label minggu (contoh: "Minggu 1", "Minggu 2", dll)
+Pertama, tuliskan kolom "reasoning" (Bahasa Indonesia, 3-5 kalimat) yang menjelaskan dengan jujur dan transparan MENGAPA kamu menyusun roadmap ini seperti ini: urutan fase, durasi waktu belajar, cara progres bertahap menuju goal. Lalu berikan SATU saran belajar singkat untuk pengguna menggunakan kata "kamu".
+
+Kemudian, tuliskan kolom "phases": array berisi fase-fase pembelajaran. Setiap fase harus memiliki:
+- title: Nama fase (Bahasa Indonesia)
+- week: Label minggu (contoh: "Minggu 1", "Minggu 2", dst.)
 - order: Nomor urut fase (1, 2, 3, ...)
 - topics: Array topik yang dipelajari di fase ini (minimal 3-4 topik)
 - duration: Durasi fase (contoh: "7 hari")
 
-OUTPUT HANYA JSON ARRAY, tanpa markdown, tanpa teks lain. Format:
-[
-  {
-    "title": "Nama Fase",
-    "week": "Minggu 1",
-    "order": 1,
-    "topics": ["Topik 1", "Topik 2", "Topik 3"],
-    "duration": "7 hari"
-  }
-]`;
+OUTPUT HANYA SATU JSON OBJECT, tanpa markdown, tanpa teks lain. Contoh format:
+{
+  "reasoning": "Penjelasan & saran belajar...",
+  "phases": [
+    {
+      "title": "Nama Fase",
+      "week": "Minggu 1",
+      "order": 1,
+      "topics": ["Topik 1", "Topik 2", "Topik 3"],
+      "duration": "7 hari"
+    }
+  ]
+}`;
 
   const rawText = await callGeminiAPI(prompt);
   const jsonStr = extractJSON(rawText);
-  const phases = JSON.parse(jsonStr) as RoadmapPhase[];
+  const parsed = JSON.parse(jsonStr) as {
+    reasoning?: unknown;
+    phases?: unknown;
+  };
 
-  return phases;
+  const phases: RoadmapPhase[] = Array.isArray(parsed)
+    ? (parsed as RoadmapPhase[])
+    : Array.isArray(parsed?.phases)
+      ? (parsed.phases as RoadmapPhase[])
+      : [];
+
+  if (phases.length === 0) {
+    throw new Error("Roadmap kosong. Coba lagi.");
+  }
+
+  const reasoning =
+    typeof parsed?.reasoning === "string" && parsed.reasoning.trim()
+      ? parsed.reasoning.trim()
+      : buildRoadmapReasoningFallback(
+          phases,
+          goalLabel,
+          preference.targetDays,
+          skills,
+          hoursPerDay
+        );
+
+  return { phases, reasoning };
 }
 
 export async function generateDailyTasks(
@@ -449,7 +516,13 @@ Pastikan setiap hari dari ${startDay} sampai ${batchEnd} ada dalam output. Buat 
   const reasoning: string =
     typeof parsedResult?.reasoning === "string" && parsedResult.reasoning.trim()
       ? parsedResult.reasoning.trim()
-      : "";
+      : buildBatchReasoningFallback(
+          startDay,
+          batchEnd,
+          roadmap,
+          hoursPerDayLabel,
+          difficultyFeedback ?? ""
+        );
 
   if (!Array.isArray(dayList) || dayList.length === 0) {
     throw new Error("Task harian kosong. Coba lagi.");
