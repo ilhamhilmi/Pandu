@@ -46,7 +46,7 @@ export const FEATURES: Feature[] = [
   {
     icon: <FaRobot className="h-6 w-6" />,
     title: "AI Roadmap",
-    desc: "AI (Llama 3.3 via Groq) menyusun roadmap berfase dari preferensimu — goal, target waktu, skill saat ini, dan jam belajar per hari.",
+    desc: "AI (Gemini 3.6 Flash) menyusun roadmap berfase dari preferensimu — goal, target waktu, skill saat ini, dan jam belajar per hari.",
   },
   {
     icon: <FiCheckCircle className="h-6 w-6" />,

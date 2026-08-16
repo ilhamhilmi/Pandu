@@ -1,6 +1,6 @@
-const GROQ_API_KEY = process.env.GROQ_API_KEY!;
-const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
-const GROQ_MODEL = "llama-3.3-70b-versatile";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+const GEMINI_MODEL = "gemini-3.6-flash";
 
 interface UserPreference {
   goal: string;
@@ -35,7 +35,7 @@ interface DailyTaskBatch {
   tasks: DailyTaskItem[];
 }
 
-async function callGroqAPI(
+async function callGeminiAPI(
   prompt: string,
   options?: { maxRetries?: number; maxTokens?: number }
 ): Promise<string> {
@@ -43,14 +43,14 @@ async function callGroqAPI(
   const maxTokens = options?.maxTokens ?? 8192;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    const response = await fetch(GROQ_API_URL, {
+    const response = await fetch(GEMINI_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${GROQ_API_KEY}`,
+        Authorization: `Bearer ${GEMINI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: GROQ_MODEL,
+        model: GEMINI_MODEL,
         messages: [
           {
             role: "user",
@@ -68,7 +68,7 @@ async function callGroqAPI(
       const text = data?.choices?.[0]?.message?.content;
 
       if (!text) {
-        throw new Error("Groq API returned empty response");
+        throw new Error("Gemini API returned empty response");
       }
 
       return text;
@@ -78,7 +78,7 @@ async function callGroqAPI(
     if (response.status === 429 && attempt < maxRetries) {
       const errorText = await response.text();
       console.warn(
-        `Groq API rate limited (429). Retry ${attempt + 1}/${maxRetries} after delay...`,
+        `Gemini API rate limited (429). Retry ${attempt + 1}/${maxRetries} after delay...`,
         errorText
       );
       // Exponential backoff: 5s, then 10s
@@ -90,15 +90,15 @@ async function callGroqAPI(
     // Non-retryable error or out of retries
     const errorText = await response.text();
 
-    // Friendly message for rate limit (429) instead of exposing the raw Groq payload
+    // Friendly message for rate limit (429) instead of exposing the raw Gemini payload
     if (response.status === 429) {
       throw new Error("Coba lagi beberapa saat ya.");
     }
 
-    throw new Error(`Groq API error (${response.status}): ${errorText}`);
+    throw new Error(`Gemini API error (${response.status}): ${errorText}`);
   }
 
-  throw new Error("Groq API failed after max retries");
+  throw new Error("Gemini API failed after max retries");
 }
 
 function extractJSON(text: string): string {
@@ -262,7 +262,7 @@ OUTPUT HANYA JSON ARRAY, tanpa markdown, tanpa teks lain. Format:
   }
 ]`;
 
-  const rawText = await callGroqAPI(prompt);
+  const rawText = await callGeminiAPI(prompt);
   const jsonStr = extractJSON(rawText);
   const phases = JSON.parse(jsonStr) as RoadmapPhase[];
 
@@ -331,7 +331,7 @@ OUTPUT HANYA JSON ARRAY, tanpa markdown, tanpa teks lain. Format:
   }
 ]`;
 
-  const rawText = await callGroqAPI(prompt);
+  const rawText = await callGeminiAPI(prompt);
   const jsonStr = extractJSON(rawText);
   const tasks = JSON.parse(jsonStr) as DailyTaskItem[];
 
@@ -437,7 +437,7 @@ OUTPUT HANYA SATU JSON OBJECT, tanpa markdown, tanpa teks lain. Format:
 
 Pastikan setiap hari dari ${startDay} sampai ${batchEnd} ada dalam output. Buat progres yang logis mengikuti roadmap.`;
 
-  const rawText = await callGroqAPI(prompt, { maxTokens: 8192 });
+  const rawText = await callGeminiAPI(prompt, { maxTokens: 8192 });
   const jsonStr = extractJSON(rawText);
   const parsedResult = JSON.parse(jsonStr);
 
@@ -556,7 +556,7 @@ OUTPUT HANYA JSON ARRAY, tanpa markdown, tanpa teks lain. Format setiap elemen:
 
 Pastikan variasi bahasa sesuai goal, tingkat kesulitan wajar untuk pemula (otodidak), dan setiap soal benar-benar bisa dijawab dari materi goal/topik.`;
 
-  const rawText = await callGroqAPI(prompt, { maxTokens: 4096 });
+  const rawText = await callGeminiAPI(prompt, { maxTokens: 4096 });
   const jsonStr = extractJSON(rawText);
   const parsed = JSON.parse(jsonStr) as PracticeQuestion[];
 

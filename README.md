@@ -33,7 +33,7 @@ yang sudah ada di internet (w3schools, MDN, YouTube, dsb).
 | Fitur | Deskripsi |
 |-------|-----------|
 | **Personalisasi** | Form preferensi belajar: goal, target waktu, skill, jam belajar/hari |
-| **AI Roadmap** | Generate roadmap belajar berfase menggunakan Groq AI (`Llama-3.3-70b-versatile`) |
+| **AI Roadmap** | Generate roadmap belajar berfase menggunakan Gemini AI (`gemini-3.6-flash`) |
 | **To Do Harian** | Task harian per fase 7 hari yang dibuat AI dengan sistem lock/unlock berbasis penyelesaian |
 | **AI Syntax Puzzle** | Latihan Puzzle Sintaks yang dibuat oleh AI untuk kamu, menyesuaikan target belajar kamu |
 
@@ -43,4 +43,4 @@ yang sudah ada di internet (w3schools, MDN, YouTube, dsb).
 | --- | --- |
 | **Frontend** | Next.js 15.5.7 (App Router), React 19, TypeScript, Tailwind CSS 4, shadcn/ui |
 | **Backend** | Next.js API Route Handlers, Prisma ORM, Supabase Auth |
-| **Database & AI** | PostgreSQL (Supabase), Groq API (Llama 3.3 70B) |
+| **Database & AI** | PostgreSQL (Supabase), Gemini API (Gemini 3.6 Flash) |
