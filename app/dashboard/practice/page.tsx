@@ -9,6 +9,7 @@ import {
   FiArrowRight,
   FiCheck,
 } from "react-icons/fi";
+import { IoExtensionPuzzle } from "react-icons/io5";
 import PageHeader from "@/components/dashboard/page-header";
 import EmptyState from "@/components/dashboard/empty-state";
 import ErrorState from "@/components/dashboard/error-state";
@@ -122,13 +123,13 @@ export default function PracticePage() {
             <div className="flex flex-col items-center gap-4 mt-4">
               <FiRefreshCw className="h-10 w-10 text-primary animate-spin" />
               <p className="font-inter text-sm text-muted-foreground">
-                AI lagi buatin soal latihan khusus untukmu...
+                Tunggu ya, AI lagi buatin soal latihan khusus buat kamu...
               </p>
             </div>
           </div>
         ) : (
           <EmptyState
-            icon={<FiTarget className="h-10 w-10 text-primary" />}
+            icon={<IoExtensionPuzzle className="h-10 w-10 text-primary" />}
             title="Siap Latihan?"
             description={`Klik tombol di bawah untuk memulai. AI akan membuat 5-10 soal "Syntax Puzzle" untuk melengkapi sintaks yang rumpang, disesuaikan dengan goal belajarmu${
               goal ? `: "${goal}"` : ""
