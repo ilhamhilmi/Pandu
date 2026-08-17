@@ -23,7 +23,7 @@ import PageHeader from "@/components/dashboard/page-header";
 import ErrorState from "@/components/dashboard/error-state";
 import EmptyState from "@/components/dashboard/empty-state";
 import StatCard from "@/components/dashboard/stat-card";
-import ProgressBar from "@/components/dashboard/progress-bar";
+import CircularProgress from "@/components/dashboard/circular-progress";
 import ConfirmationModal from "@/components/dashboard/confirmation-modal";
 import DifficultyModal from "@/components/dashboard/difficulty-modal";
 import { useRouter } from "next/navigation";
@@ -337,12 +337,13 @@ export default function DashboardPage() {
           bg="bg-blue-100"
         />
         <StatCard
-          icon={<FiTrendingUp className="h-5 w-5" />}
+          icon={<CircularProgress value={progress?.progressPercent || 0} />}
           label="Progress"
           value={`${progress?.progressPercent || 0}%`}
           unit="selesai"
           color="text-primary"
-          bg="bg-primary/10"
+          bg=""
+          iconClassName="h-12 w-12 rounded-full"
         />
       </div>
 
@@ -362,12 +363,6 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
-
-      {/* Progress Bar Keseluruhan */}
-      <ProgressBar
-        percent={progress?.progressPercent || 0}
-        label="Progress Keseluruhan"
-      />
 
       {/* Info: sumber belajar di Perpustakaan */}
       <div className="flex items-start gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4 sm:p-5 mb-6 sm:mb-8">

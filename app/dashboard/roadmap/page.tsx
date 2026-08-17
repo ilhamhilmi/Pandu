@@ -9,7 +9,6 @@ import {
   FiFlag,
   FiInfo,
   FiMap,
-  FiTarget,
 } from "react-icons/fi";
 import { FaFire } from "react-icons/fa";
 import { SkeletonRoadmap, SkeletonPageHeader } from "@/components/ui/skeleton";
@@ -17,7 +16,7 @@ import PageHeader from "@/components/dashboard/page-header";
 import ErrorState from "@/components/dashboard/error-state";
 import EmptyState from "@/components/dashboard/empty-state";
 import StatCard from "@/components/dashboard/stat-card";
-import ProgressBar from "@/components/dashboard/progress-bar";
+import CircularProgress from "@/components/dashboard/circular-progress";
 
 interface RoadmapPhase {
   title: string;
@@ -127,7 +126,16 @@ export default function RoadmapPage() {
     ? progress.totalTasks - progress.totalCompleted
     : 0;
 
-  const stats = [
+  type StatDef = {
+    icon: React.ReactNode;
+    label: string;
+    value: string;
+    color: string;
+    bg: string;
+    iconClassName?: string;
+  };
+
+  const stats: StatDef[] = [
     {
       icon: <FiCheckSquare className="h-5 w-5" />,
       label: "Total Tugas",
@@ -150,11 +158,12 @@ export default function RoadmapPage() {
       bg: "bg-orange-100",
     },
     {
-      icon: <FiTarget className="h-5 w-5" />,
+      icon: <CircularProgress value={progress?.progressPercent ?? 0} />,
       label: "Total Progress",
       value: `${progress?.progressPercent ?? 0}%`,
       color: "text-primary",
-      bg: "bg-primary/10",
+      bg: "",
+      iconClassName: "h-12 w-12 rounded-full",
     },
   ];
 
@@ -179,15 +188,10 @@ export default function RoadmapPage() {
                 value={stat.value}
                 color={stat.color}
                 bg={stat.bg}
+                iconClassName={stat.iconClassName}
               />
             ))}
           </div>
-
-          {/* Progress Bar */}
-          <ProgressBar
-            percent={progress.progressPercent}
-            label="Progress Keseluruhan"
-          />
 
           {/* Streak Info */}
           <div className="bg-white rounded-xl border border-border p-4 sm:p-5 mb-6">

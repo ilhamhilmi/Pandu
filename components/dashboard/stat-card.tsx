@@ -9,6 +9,8 @@ interface StatCardProps {
   color?: string;
   bg?: string;
   unit?: string;
+  /** Override kelas wadah ikon (default: h-10 w-10 rounded-lg) */
+  iconClassName?: string;
 }
 
 export default function StatCard({
@@ -18,12 +20,13 @@ export default function StatCard({
   color = "text-primary",
   bg = "bg-primary/10",
   unit,
+  iconClassName,
 }: StatCardProps) {
   return (
     <div className="bg-white rounded-xl border border-border p-4 sm:p-5">
       <div className="flex items-center gap-3">
         <div
-          className={`h-10 w-10 rounded-lg ${bg} flex items-center justify-center`}
+          className={`${iconClassName ?? "h-10 w-10 rounded-lg"} ${bg} flex items-center justify-center`}
         >
           <span className={`${color}`}>{icon}</span>
         </div>
