@@ -128,7 +128,7 @@ function HeroMockup() {
         <div className="flex items-center justify-between border-b border-border pb-4">
           <div className="flex items-center gap-2">
             <div className="rounded-lg bg-primary/10 px-3 py-1.5 text-sm font-bold text-primary font-inter">
-              Goal: Web Developer · 30 hari
+              Goal: Frontend Developer · 30 hari
             </div>
           </div>
           <div className="flex items-center gap-2">

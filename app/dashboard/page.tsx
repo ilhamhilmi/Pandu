@@ -11,6 +11,7 @@ import {
   FiExternalLink,
   FiLock,
   FiInfo,
+  FiAlertTriangle,
 } from "react-icons/fi";
 import { FaFire } from "react-icons/fa";
 import {
@@ -55,6 +56,7 @@ interface ProgressData {
   totalCompleted: number;
   progressPercent: number;
   streak: number;
+  isActiveToday: boolean;
   goal: string | null;
 }
 
@@ -307,8 +309,16 @@ export default function DashboardPage() {
           label="Streak"
           value={String(progress?.streak || 0)}
           unit="hari"
-          color={progress?.streak && progress.streak > 0 ? "text-orange-500" : "text-gray-400"}
-          bg={progress?.streak && progress.streak > 0 ? "bg-orange-100" : "bg-gray-100"}
+          color={
+            progress?.streak && progress.streak > 0 && progress.isActiveToday
+              ? "text-orange-500"
+              : "text-gray-400"
+          }
+          bg={
+            progress?.streak && progress.streak > 0 && progress.isActiveToday
+              ? "bg-orange-100"
+              : "bg-gray-100"
+          }
         />
         <StatCard
           icon={<FiCheckSquare className="h-5 w-5" />}
@@ -335,6 +345,23 @@ export default function DashboardPage() {
           bg="bg-primary/10"
         />
       </div>
+
+      {/* Streak at-risk: streak aktif tapi hari ini belum ada checklist */}
+      {progress?.streak && progress.streak > 0 && !progress.isActiveToday && (
+        <div className="flex items-start gap-3 rounded-xl border border-amber-300/60 bg-amber-50 p-4 sm:p-5 mb-6 sm:mb-8">
+          <span className="mt-0.5 shrink-0 text-amber-600">
+            <FiAlertTriangle className="h-5 w-5" />
+          </span>
+          <div>
+            <h2 className="font-inter text-sm font-semibold text-foreground mb-1">
+              Jangan sampai streak belajar kamu putus!
+            </h2>
+            <p className="font-inter text-sm text-muted-foreground leading-relaxed">
+              Ayo mulai belajar sekarang biar kamu tetap konsisten.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Progress Bar Keseluruhan */}
       <ProgressBar

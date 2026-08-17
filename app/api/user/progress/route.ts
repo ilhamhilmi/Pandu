@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
-import { calculateStreak } from "@/lib/dates";
+import { calculateStreak, todayInTimezone } from "@/lib/dates";
 
 export async function GET() {
   try {
@@ -81,6 +81,13 @@ export async function GET() {
       );
     }
 
+    // 8. Cek apakah hari ini sudah ada minimal 1 checklist (untuk peringatan "streak dalam bahaya").
+    //    Streak > 0 tapi isActiveToday false = hari ini belum belajar, streak berisiko putus besok.
+    const today = todayInTimezone(preference?.timezone);
+    const isActiveToday = !!(await prisma.activeDay.findUnique({
+      where: { userId_date: { userId: user.id, date: today } },
+    }));
+
     const progressPercent =
       totalTasks > 0 ? Math.round((totalCompleted / totalTasks) * 100) : 0;
 
@@ -97,6 +104,7 @@ export async function GET() {
           totalCompleted,
           progressPercent,
           streak,
+          isActiveToday,
           goal: preference?.goal || null,
         },
       },
