@@ -17,6 +17,7 @@ model User {
   preference UserPreference?
   roadmap    Roadmap?
   dailyTasks DailyTask[]
+  activeDays ActiveDay[]
 }
 
 model UserPreference {
@@ -27,6 +28,7 @@ model UserPreference {
   targetDays     Int
   selectedSkills String[]
   hoursPerDay    Float?
+  timezone       String?  // IANA timezone user (mis. "Asia/Jakarta"), untuk perhitungan streak
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -58,4 +60,17 @@ model DailyTask {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, day])
+}
+
+// Mencatat tanggal kalender (YYYY-MM-DD di timezone user) di mana user melakukan
+// minimal 1 checklist task. Tetap tersimpan walau task di-uncheck (hari tetap aktif).
+model ActiveDay {
+  id     String @id @default(uuid())
+  userId String
+  date   String // YYYY-MM-DD di timezone user
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
 }

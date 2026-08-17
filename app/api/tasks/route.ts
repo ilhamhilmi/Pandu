@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
+import { todayInTimezone } from "@/lib/dates";
 
 export async function GET() {
   try {
@@ -82,7 +83,7 @@ export async function PATCH(request: Request) {
 
     // 2. Parse request body
     const body = await request.json();
-    const { day, taskIndex, completed } = body;
+    const { day, taskIndex, completed, timezone } = body;
 
     if (day === undefined || taskIndex === undefined || completed === undefined) {
       return NextResponse.json(
@@ -128,7 +129,41 @@ export async function PATCH(request: Request) {
       completed,
     };
 
-    // 5. Save updated tasks
+    // 5. Persist timezone from browser (backfill for existing users), if provided
+    if (typeof timezone === "string" && timezone.trim()) {
+      const preference = await prisma.userPreference.findUnique({
+        where: { userId: user.id },
+      });
+      if (preference && preference.timezone !== timezone.trim()) {
+        await prisma.userPreference.update({
+          where: { userId: user.id },
+          data: { timezone: timezone.trim() },
+        });
+      }
+    }
+
+    // 6. Track active day for streak (TikTok-style).
+    //    A day counts as "active" when the user checks at least 1 task that day.
+    //    Once recorded, it stays even if the task is unchecked later.
+    if (completed) {
+      // Read the user's timezone (just saved above, or existing)
+      const preference = await prisma.userPreference.findUnique({
+        where: { userId: user.id },
+      });
+      const tz = preference?.timezone || null;
+      const dateKey = todayInTimezone(tz);
+
+      const existing = await prisma.activeDay.findUnique({
+        where: { userId_date: { userId: user.id, date: dateKey } },
+      });
+      if (!existing) {
+        await prisma.activeDay.create({
+          data: { userId: user.id, date: dateKey },
+        });
+      }
+    }
+
+    // 7. Save updated tasks
     const updated = await prisma.dailyTask.update({
       where: {
         userId_day: {

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
+import { calculateStreak } from "@/lib/dates";
 
 export async function GET() {
   try {
@@ -38,7 +39,6 @@ export async function GET() {
     let totalCompleted = 0;
     let totalTasks = 0;
     let currentDay = 1; // First day that is not fully completed
-    let streak = 0;
 
     if (allTasks.length > 0) {
       // Calculate totals and find current day (first incomplete day)
@@ -63,22 +63,22 @@ export async function GET() {
 
       // Cap currentDay at targetDays
       currentDay = Math.min(currentDay, roadmap?.targetDays || 30);
+    }
 
-      // Calculate streak (consecutive days with all tasks completed, going backwards from currentDay)
-      for (let i = currentDay - 1; i >= 1; i--) {
-        const dayTasks = allTasks.find((t) => t.day === i);
-        if (dayTasks) {
-          const tasks = dayTasks.tasks as Array<{ completed?: boolean }>;
-          const allCompleted = tasks.every((t) => t.completed);
-          if (allCompleted && tasks.length > 0) {
-            streak++;
-          } else {
-            break;
-          }
-        } else {
-          break;
-        }
-      }
+    // 7. Calculate streak (TikTok-style activity streak).
+    //    Streak = jumlah hari kalender berturut-turut (di timezone user) di mana
+    //    user melakukan minimal 1 checklist task. Dihitung dari ActiveDay,
+    //    bukan dari penyelesaian semua task pada tiap 'day'.
+    let streak = 0;
+    if (preference?.timezone || allTasks.length > 0) {
+      const activeDays = await prisma.activeDay.findMany({
+        where: { userId: user.id },
+        select: { date: true },
+      });
+      streak = calculateStreak(
+        activeDays.map((a) => a.date),
+        preference?.timezone
+      );
     }
 
     const progressPercent =

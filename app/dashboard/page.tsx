@@ -161,6 +161,7 @@ export default function DashboardPage() {
           day,
           taskIndex,
           completed: newCompleted,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         }),
       });
 
@@ -306,8 +307,8 @@ export default function DashboardPage() {
           label="Streak"
           value={String(progress?.streak || 0)}
           unit="hari"
-          color="text-orange-500"
-          bg="bg-orange-100"
+          color={progress?.streak && progress.streak > 0 ? "text-orange-500" : "text-gray-400"}
+          bg={progress?.streak && progress.streak > 0 ? "bg-orange-100" : "bg-gray-100"}
         />
         <StatCard
           icon={<FiCheckSquare className="h-5 w-5" />}

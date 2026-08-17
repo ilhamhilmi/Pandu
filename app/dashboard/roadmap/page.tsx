@@ -192,8 +192,16 @@ export default function RoadmapPage() {
           {/* Streak Info */}
           <div className="bg-white rounded-xl border border-border p-4 sm:p-5 mb-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="h-10 w-10 rounded-lg bg-orange-100 flex items-center justify-center">
-                <FaFire className="h-5 w-5 text-orange-500" />
+              <div
+                className={`h-10 w-10 rounded-lg flex items-center justify-center ${
+                  progress.streak > 0 ? "bg-orange-100" : "bg-gray-100"
+                }`}
+              >
+                <FaFire
+                  className={`h-5 w-5 ${
+                    progress.streak > 0 ? "text-orange-500" : "text-gray-400"
+                  }`}
+                />
               </div>
               <div>
                 <h2 className="font-inter text-base font-semibold text-foreground">

@@ -111,6 +111,7 @@ export default function Onboarding() {
           targetDays: finalTargetDays,
           selectedSkills,
           hoursPerDay: hoursPerDay || null,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         }),
       });
 
