@@ -259,7 +259,7 @@ export default function RoadmapPage() {
           </span>
           <div>
             <h2 className="font-inter text-sm font-semibold text-foreground mb-1">
-              Mengapa kami menyarankan kamu untuk belajar ini?
+              Mengapa AI menyarankan kamu untuk belajar ini?
             </h2>
             <p className="font-inter text-sm text-muted-foreground leading-relaxed">
               {roadmap.reasoning}
@@ -299,7 +299,7 @@ export default function RoadmapPage() {
               className="relative flex items-start gap-4 sm:gap-5"
             >
               {/* Node fase */}
-              <div className="relative z-10 h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-primary to-teal-500 flex items-center justify-center text-white shadow-md ring-4 ring-primary/10 transition-transform duration-200 hover:scale-110">
+              <div className="relative z-10 h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center text-white shadow-md ring-4 ring-primary/10 transition-transform duration-200 hover:scale-110">
                 <span className="font-inter text-sm font-bold">
                   {index + 1}
                 </span>
@@ -346,7 +346,7 @@ export default function RoadmapPage() {
             <div className="relative z-10 h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white shadow-lg ring-4 ring-amber-100">
               <FiFlag className="h-5 w-5" />
             </div>
-            <div className="flex-1 min-w-0 bg-gradient-to-br from-primary/10 via-teal-50/60 to-white rounded-xl border border-primary/30 p-4 sm:p-5">
+            <div className="flex-1 min-w-0 bg-gradient-to-br from-primary/10 via-orange-50/60 to-white rounded-xl border border-primary/30 p-4 sm:p-5">
               <h3 className="font-inter text-base sm:text-lg font-bold text-primary">
                 Goal Tercapai!
               </h3>

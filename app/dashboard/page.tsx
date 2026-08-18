@@ -383,7 +383,7 @@ export default function DashboardPage() {
           </span>
           <div>
             <h2 className="font-inter text-sm font-semibold text-foreground mb-1">
-              Mengapa kami menyarankan kamu untuk belajar ini?
+              Mengapa AI menyarankan kamu untuk belajar ini?
             </h2>
             <p className="font-inter text-sm text-muted-foreground leading-relaxed">
               {reasoning}

@@ -7,7 +7,7 @@ export interface StepCardProps {
 }
 
 const STEP_NUMBERS = [
-  "text-teal-500",
+  "text-orange-500",
   "text-violet-500",
   "text-amber-500",
   "text-sky-500",
@@ -29,7 +29,7 @@ interface HowItWorksProps {
 
 export default function HowItWorks({ steps = STEPS }: HowItWorksProps) {
   return (
-    <section id="cara-kerja" className="scroll-mt-20 border-t border-border bg-gradient-to-r from-violet-50/50 via-teal-50/50 to-sky-50/50 py-20 sm:py-24">
+    <section id="cara-kerja" className="scroll-mt-20 border-t border-border bg-gradient-to-r from-violet-50/50 via-orange-50/50 to-sky-50/50 py-20 sm:py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 font-inter">
         <SectionHeading
           eyebrow="Cara Kerja"

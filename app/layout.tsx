@@ -61,7 +61,7 @@ export const metadata: Metadata = {
       "Roadmap belajar programming yang dipersonalisasi dengan AI. Mulai belajar dengan terarah, tanpa bingung harus mulai dari mana.",
     images: [
       {
-        url: "/icon/Pandu_Icon.png",
+        url: "/icon/PanduIcon-new.svg",
         width: 2004,
         height: 2028,
         alt: "Pandu — Belajar Programming Jadi Terarah",
@@ -73,7 +73,7 @@ export const metadata: Metadata = {
     title: "Pandu — Belajar Programming Jadi Terarah",
     description:
       "Roadmap belajar programming yang dipersonalisasi dengan AI. Belajar dengan terarah dan progresif.",
-    images: ["/icon/Pandu_Icon.png"],
+    images: ["/icon/PanduIcon-new.svg"],
   },
   robots: {
     index: true,
@@ -87,12 +87,12 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: "/icon/Pandu_Icon.png",
+    icon: "/icon/PanduIcon-new.svg",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#2dd4bf",
+  themeColor: "#f16634",
 };
 
 export default function RootLayout({

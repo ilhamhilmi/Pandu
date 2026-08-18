@@ -7,7 +7,7 @@ export interface FeatureCardProps {
 }
 
 const CARD_CHIPS = [
-  "bg-teal-100 text-teal-600",
+  "bg-orange-100 text-orange-600",
   "bg-violet-100 text-violet-600",
   "bg-amber-100 text-amber-600",
   "bg-sky-100 text-sky-600",
@@ -33,7 +33,7 @@ interface FeaturesProps {
 
 export default function Features({ features = FEATURES }: FeaturesProps) {
   return (
-    <section id="fitur" className="scroll-mt-20 bg-gradient-to-b from-white to-teal-50/40 py-20 sm:py-24">
+    <section id="fitur" className="scroll-mt-20 bg-gradient-to-b from-white to-orange-50/40 py-20 sm:py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 font-inter">
         <SectionHeading
           eyebrow="Fitur Utama"

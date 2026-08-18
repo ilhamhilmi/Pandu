@@ -5,9 +5,10 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --primary: #2dd4bf;
-  --primary-hover: #14b8a6;
-  --primary-light: #99f6e4;
+  /* //7b42f5 */
+  --primary: #f16634; 
+  --primary-hover: #ea580c;
+  --primary-light: #fed7aa;
   --primary-foreground: oklch(0.985 0 0);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);

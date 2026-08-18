@@ -9,7 +9,7 @@ interface LogoProps {
 }
 
 /**
- * Reusable Pandu wordmark logo using /icon/Pandu_Icon_Wordmark.png.
+ * Reusable Pandu wordmark logo using /icon/Pandu-new.svg.
  * The image uses object-contain so the aspect ratio is preserved regardless
  * of the container width/height.
  */
@@ -25,7 +25,7 @@ export default function Logo({
       role="img"
     >
       <Image
-        src="/icon/Pandu_Icon_Wordmark.png"
+        src="/icon/Pandu-new.svg"
         alt="Pandu - Belajar Programming Jadi Terarah"
         fill
         priority={priority}

@@ -51,7 +51,7 @@ export default function Hero() {
   const label = user ? "Ruang Belajar" : "Mulai Belajar Gratis"
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-teal-50/60 via-white to-white">
+    <section className="relative overflow-hidden bg-gradient-to-b from-orange-50/60 via-white to-white">
       {/* decorative gradient blobs */}
       <AnimatedGridPattern />
 
@@ -124,7 +124,7 @@ function HeroMockup() {
         ease: "easeInOut",
       }}
       className="mx-auto mt-14 max-w-3xl text-left">
-      <div className="rounded-2xl border border-border bg-white/90 p-5 shadow-2xl shadow-teal-500/20 backdrop-blur">
+      <div className="rounded-2xl border border-border bg-white/90 p-5 shadow-2xl shadow-orange-500/20 backdrop-blur">
         <div className="flex items-center justify-between border-b border-border pb-4">
           <div className="flex items-center gap-2">
             <div className="rounded-lg bg-primary/10 px-3 py-1.5 text-sm font-bold text-primary font-inter">

@@ -13,7 +13,7 @@ export default function Faq({ items = FAQS }: FaqProps) {
   const [openItem, setOpenItem] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="scroll-mt-20 border-t border-border bg-gradient-to-r from-sky-50/50 via-white to-teal-50/50 py-20 sm:py-24">
+    <section id="faq" className="scroll-mt-20 border-t border-border bg-gradient-to-r from-sky-50/50 via-white to-orange-50/50 py-20 sm:py-24">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 font-inter">
         <SectionHeading eyebrow="FAQ" title="Pertanyaan yang Sering Diajukan" />
 

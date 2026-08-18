@@ -75,7 +75,7 @@ export default function DashboardLayout({
         {/* Logo */}
         <div className="flex items-center gap-2 px-6 py-6 border-b border-border">
           <div className="bg-white flex items-center justify-center">
-            <Image src="/icon/Pandu_Icon.png" alt="Icon" width={25} height={25} />
+            <Image src="/icon/PanduIcon-new.svg" alt="Icon" width={25} height={25} />
           </div>
           <h1 className="font-inter uppercase border rounded-full py-1 px-2.5 text-sm font-semibold border-primary/10 bg-primary/10 text-primary">Ruang Belajar</h1>
         </div>
@@ -137,7 +137,7 @@ export default function DashboardLayout({
         <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-white">
           <div className="flex items-center gap-2">
             <div className="h-7 w-7 flex items-center justify-center">
-              <Image src="/icon/Pandu_Icon.png" alt="Icon" width={25} height={25} />
+              <Image src="/icon/PanduIcon-new.svg" alt="Icon" width={25} height={25} />
             </div>
             <h1 className="font-inter uppercase border rounded-full py-1 px-2.5 text-sm font-semibold border-primary/10 bg-primary/10 text-primary">Ruang Belajar</h1>
           </div>

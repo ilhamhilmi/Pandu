@@ -239,7 +239,7 @@ function buildRoadmapReasoningFallback(
   return [
     `Roadmap untukmu disusun agar bisa belajar "${goalLabel}" dalam target ${targetDays} hari, bertahap dari ${pertama} lalu menuju ${terakhir}.`,
     `Urutan fase dibuat dengan struktur belajar yang logis: memahami konsep, membangun fondasi, sampai berlatih langsung, dan disesuaikan dengan jam belajar (${hoursPerDay})${skills ? ` serta kemampuanmu di ${skills}` : ""}.`,
-    "Saran saya: tetap konsisten belajar sedikit demi sedikit setiap hari, dan jangan ragu mengulangi materi yang terasa sulit sebelum lanjut ke fase berikutnya.",
+    "Saran dari AI: tetap konsisten belajar sedikit demi sedikit setiap hari, dan jangan ragu mengulangi materi yang terasa sulit sebelum lanjut ke fase berikutnya.",
   ].join(" ");
 }
 
@@ -261,7 +261,7 @@ function buildBatchReasoningFallback(
   return [
     `Untuk ${days}, task harian disusun agar pemahamanmu berkembang bertahap: dimulai dari fokus "${fokus}" lalu bergerak mengikuti roadmap.`,
     `Jumlah dan durasi task menyesuaikan waktu belajarmu (${hoursPerDayLabel}) sehingga target harian tetap realistis.${feedback}`,
-    "Saran dari saya: kerjakan task sesuai urutan sedikit demi sedikit, dan luangkan waktu praktik langsung supaya materinya semakin nempel.",
+    "Saran dari AI: kerjakan task sesuai urutan sedikit demi sedikit, dan luangkan waktu praktik langsung supaya materinya semakin nempel.",
   ].join(" ");
 }
 

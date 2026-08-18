@@ -40,7 +40,7 @@ export default function Marquee() {
   return (
     <div
       aria-hidden="true"
-      className="relative w-full overflow-hidden border-y border-border bg-gradient-to-r from-primary via-teal-500 to-teal-600 py-4"
+      className="relative w-full overflow-hidden border-y border-border bg-primary py-4"
     >
       <div className="flex w-max animate-marquee items-center gap-8">
         {[0, 1].map((i) => (

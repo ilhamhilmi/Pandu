@@ -7,7 +7,7 @@ export interface PersonaCardProps {
 }
 
 const PERSONA_CHIPS = [
-  "bg-teal-100 text-teal-600",
+  "bg-orange-100 text-orange-600",
   "bg-violet-100 text-violet-600",
   "bg-amber-100 text-amber-600",
 ];
@@ -30,7 +30,7 @@ interface TargetUsersProps {
 
 export default function TargetUsers({ personas = PERSONAS }: TargetUsersProps) {
   return (
-    <section id="untuk-siapa" className="scroll-mt-20 bg-gradient-to-b from-teal-50/40 to-white py-20 sm:py-24">
+    <section id="untuk-siapa" className="scroll-mt-20 bg-gradient-to-b from-orange-50/40 to-white py-20 sm:py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 font-inter">
         <SectionHeading
           eyebrow="Untuk Siapa"
