@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CiClock2, CiCalendarDate, CiStar, CiCalendar } from "react-icons/ci";
 import { FiLoader } from "react-icons/fi";
 import { supabase } from "@/lib/supabase/client";
 import { SkeletonCard } from "@/components/ui/skeleton";
+import Stepper, { Step } from "@/components/ui/stepper";
 
 const GOAL_OPTIONS = [
   { value: "Web Developer", label: "Web Developer" },
@@ -37,19 +38,41 @@ export default function Onboarding() {
   const [targetDays, setTargetDays] = useState<number | "">(30);
   const [targetDaysCustom, setTargetDaysCustom] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [skillOther, setSkillOther] = useState(false);
+  const [skillOtherValue, setSkillOtherValue] = useState("");
   const [hoursPerDay, setHoursPerDay] = useState<number | "">(1);
   const [aiNote, setAiNote] = useState("");
   const [useCustomDays, setUseCustomDays] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [step, setStep] = useState<"form" | "generating">("form");
+  const [activeStep, setActiveStep] = useState(1);
+  const [stepperKey, setStepperKey] = useState(0);
+  const [stepperInitial, setStepperInitial] = useState(1);
   const [generateProgress, setGenerateProgress] = useState("");
 
+  function currentTargetDays() {
+    return useCustomDays ? parseInt(targetDaysCustom) : targetDays;
+  }
+
   function toggleSkill(skill: string) {
-    setSelectedSkills((prev) => {
-      if (skill === "belum tahu apa-apa") {
-        return prev.includes(skill) ? [] : ["belum tahu apa-apa"];
+    if (skill === "lainnya") {
+      const next = !skillOther;
+      setSkillOther(next);
+      if (next) {
+        setSelectedSkills((prev) =>
+          prev.includes("belum tahu apa-apa") ? [] : prev
+        );
       }
+      return;
+    }
+    if (skill === "belum tahu apa-apa") {
+      setSkillOther(false);
+      setSelectedSkills((prev) =>
+        prev.includes(skill) ? [] : ["belum tahu apa-apa"]
+      );
+      return;
+    }
+    setSelectedSkills((prev) => {
       if (prev.includes("belum tahu apa-apa")) {
         return prev
           .filter((s) => s !== "belum tahu apa-apa")
@@ -61,35 +84,57 @@ export default function Onboarding() {
     });
   }
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    setError(null);
-
-    // Validate
+  function validateStep1(): boolean {
     if (!goal) {
-      setError("Pilih goal belajar kamu");
-      return;
+      setError("Lengkapi dulu goal belajar kamu ya");
+      return false;
     }
     if (goal === "lainnya" && !goalCustom.trim()) {
-      setError("Tulis goal kamu");
-      return;
+      setError("Lengkapi dulu goal belajar kamu ya");
+      return false;
     }
-    const finalTargetDays = useCustomDays
-      ? parseInt(targetDaysCustom)
-      : targetDays;
-    if (!finalTargetDays || finalTargetDays <= 0) {
+    const days = currentTargetDays();
+    if (!days || Number(days) <= 0) {
       setError("Atur target waktu belajar");
-      return;
+      return false;
     }
-    if (selectedSkills.length === 0) {
+    return true;
+  }
+
+  function validateStep2(): boolean {
+    if (skillOther && !skillOtherValue.trim()) {
+      setError("Tulis skill lainnya");
+      return false;
+    }
+    if (
+      selectedSkills.length === 0 &&
+      !(skillOther && skillOtherValue.trim())
+    ) {
       setError("Pilih minimal satu skill");
-      return;
+      return false;
     }
+    return true;
+  }
 
+  function handleAllowsStep(from: number, to: number): boolean {
+    // Mundur ke step sebelumnya selalu diizinkan
+    if (to < from) return true;
+    if (from === 1) return validateStep1();
+    if (from === 2) return validateStep2();
+    return true;
+  }
+
+  function backToStep3() {
+    setIsSubmitting(false);
+    setActiveStep(3);
+    setStepperInitial(3);
+    setStepperKey((k) => k + 1);
+  }
+
+  async function runGeneration() {
+    setError(null);
     setIsSubmitting(true);
-    setStep("generating");
     setGenerateProgress("Menyimpan preferensi...");
-
     try {
       // Get current session
       const {
@@ -97,10 +142,14 @@ export default function Onboarding() {
       } = await supabase.auth.getSession();
       if (!session) {
         setError("Sesi habis, silakan login ulang");
-        setIsSubmitting(false);
-        setStep("form");
+        backToStep3();
         return;
       }
+
+      const finalSkills =
+        skillOther && skillOtherValue.trim()
+          ? [...selectedSkills, skillOtherValue.trim()]
+          : selectedSkills;
 
       // Step 1: Save preferences
       const prefRes = await fetch("/api/onboarding", {
@@ -109,8 +158,8 @@ export default function Onboarding() {
         body: JSON.stringify({
           goal,
           goalCustom: goal === "lainnya" ? goalCustom.trim() : undefined,
-          targetDays: finalTargetDays,
-          selectedSkills,
+          targetDays: currentTargetDays(),
+          selectedSkills: finalSkills,
           hoursPerDay: hoursPerDay || null,
           aiNote: aiNote.trim() || undefined,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -120,8 +169,7 @@ export default function Onboarding() {
       if (!prefRes.ok) {
         const prefData = await prefRes.json();
         setError(prefData.error || "Gagal menyimpan preferensi");
-        setIsSubmitting(false);
-        setStep("form");
+        backToStep3();
         return;
       }
 
@@ -134,8 +182,7 @@ export default function Onboarding() {
       if (!roadmapRes.ok) {
         const roadmapData = await roadmapRes.json();
         setError(roadmapData.error || "Gagal generate roadmap");
-        setIsSubmitting(false);
-        setStep("form");
+        backToStep3();
         return;
       }
 
@@ -148,8 +195,7 @@ export default function Onboarding() {
       if (!tasksRes.ok) {
         const tasksData = await tasksRes.json();
         setError(tasksData.error || "Gagal generate task harian");
-        setIsSubmitting(false);
-        setStep("form");
+        backToStep3();
         return;
       }
 
@@ -159,51 +205,20 @@ export default function Onboarding() {
         router.push("/dashboard");
         router.refresh();
       }, 500);
-    } catch (err) {
+    } catch {
       setError("Terjadi kesalahan, coba lagi");
-      setIsSubmitting(false);
-      setStep("form");
+      backToStep3();
     }
   }
 
-  // Loading/Generating Screen
-  if (step === "generating") {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-background px-4">
-        <div className="w-full max-w-md text-center space-y-6">
-          {/* Spinner */}
-          <div className="flex justify-center">
-            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <FiLoader className="h-8 w-8 text-primary animate-spin" />
-            </div>
-          </div>
-
-          {/* Title */}
-          <div>
-            <h1 className="font-inter text-xl font-bold text-foreground">
-              Tunggu ya, AI Lagi Siapin Roadmap Belajar Buat Kamu
-            </h1>
-            <p className="font-inter text-sm text-muted-foreground mt-2">
-              {generateProgress}
-            </p>
-          </div>
-
-          {/* Skeleton Previews */}
-          <div className="space-y-3 mt-6">
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-          </div>
-
-          <p className="font-inter text-xs text-muted-foreground">
-            Proses ini membutuhkan waktu beberapa saat...
-          </p>
-        </div>
-      </main>
-    );
+  function handleStepChange(s: number) {
+    setActiveStep(s);
+    if (s === 4) {
+      void runGeneration();
+    }
   }
 
-  // Form Screen
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-lg space-y-8">
@@ -224,135 +239,184 @@ export default function Onboarding() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Goal Belajar */}
-          <div className="space-y-3">
-            <label className="font-inter block text-sm font-medium text-foreground">
-              <span className="inline-flex items-center gap-2">
-                <CiCalendarDate className="h-5 w-5 text-primary" />
-                Goal belajar
-              </span>
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              {GOAL_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setGoal(option.value)}
-                  className={`font-inter rounded-lg border px-4 py-3 text-sm font-medium transition-all cursor-pointer ${
-                    goal === option.value
-                      ? "border-primary bg-primary/10 text-primary ring-1 ring-primary"
-                      : "border-border bg-background text-foreground hover:border-primary/50 hover:bg-muted"
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-            {goal === "lainnya" && (
-              <input
-                type="text"
-                value={goalCustom}
-                onChange={(e) => setGoalCustom(e.target.value)}
-                placeholder="Tulis goal kamu, misal: Game Developer"
-                className="font-inter mt-2 block w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
-              />
-            )}
+        {/* Error message */}
+        {error && (
+          <div className="font-inter rounded-lg border border-red-400 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
           </div>
+        )}
 
-          {/* Target Waktu */}
-          <div className="space-y-3">
-            <label className="font-inter block text-sm font-medium text-foreground">
-              <span className="inline-flex items-center gap-2">
-                <CiCalendar className="h-5 w-5 text-primary" />
-                Target waktu
-              </span>
-            </label>
-            {!useCustomDays ? (
-              <>
-                <div className="flex flex-wrap gap-3">
-                  {TARGET_DAYS.map((days) => (
-                    <button
-                      key={days}
-                      type="button"
-                      onClick={() => setTargetDays(days)}
-                      className={`font-inter rounded-lg border px-5 py-3 text-sm font-medium transition-all cursor-pointer ${
-                        targetDays === days
-                          ? "border-primary bg-primary/10 text-primary ring-1 ring-primary"
-                          : "border-border bg-background text-foreground hover:border-primary/50 hover:bg-muted"
+        <Stepper
+          key={stepperKey}
+          initialStep={stepperInitial}
+          onStepChange={handleStepChange}
+          allowsStep={handleAllowsStep}
+          backButtonText="Kembali"
+          nextButtonText="Selanjutnya"
+          disableStepIndicators={isSubmitting}
+          footerClassName={activeStep === 4 ? "hidden" : ""}
+          className="font-inter"
+        >
+          {/* Step 1: Goal Belajar & Target Waktu */}
+          <Step>
+            <div className="space-y-3 px-4 mb-2">
+              <label className="font-inter block text-sm font-medium text-foreground">
+                <span className="inline-flex items-center gap-2">
+                  <CiCalendarDate className="h-5 w-5 text-primary" />
+                  Goal belajar
+                </span>
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                {GOAL_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setGoal(option.value)}
+                    className={`font-inter rounded-lg border px-4 py-3 text-sm font-medium transition-all cursor-pointer ${goal === option.value
+                        ? "border-primary bg-primary/10 text-primary ring-1 ring-primary"
+                        : "border-border bg-background text-foreground hover:border-primary/50 hover:bg-muted"
                       }`}
-                    >
-                      {days} hari
-                    </button>
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setUseCustomDays(true);
-                    setTargetDays("");
-                  }}
-                  className="font-inter text-sm text-primary hover:text-primary-hover transition-colors cursor-pointer"
-                >
-                  Atur sendiri →
-                </button>
-              </>
-            ) : (
-              <div className="space-y-2">
-                <input
-                  type="number"
-                  min="1"
-                  max="365"
-                  value={targetDaysCustom}
-                  onChange={(e) => setTargetDaysCustom(e.target.value)}
-                  placeholder="Masukkan jumlah hari, misal: 45"
-                  className="font-inter block w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setUseCustomDays(false);
-                    setTargetDays(30);
-                  }}
-                  className="font-inter text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                >
-                  Pakai preset
-                </button>
+                  >
+                    {option.label}
+                  </button>
+                ))}
               </div>
-            )}
-          </div>
+              {goal === "lainnya" && (
+                <input
+                  type="text"
+                  value={goalCustom}
+                  onChange={(e) => setGoalCustom(e.target.value)}
+                  placeholder="Tulis goal kamu, misal: Mahir SQL Query"
+                  className="font-inter mt-2 block w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+                />
+              )}
+            </div>
 
-          {/* Skill Saat Ini */}
-          <div className="space-y-3">
-            <label className="font-inter block text-sm font-medium text-foreground">
-              <span className="inline-flex items-center gap-2">
-                <CiStar className="h-5 w-5 text-primary" />
-                Skill saat ini
-              </span>
-              <span className="ml-1 text-xs text-muted-foreground font-normal">
-                (pilih semua yang sesuai)
-              </span>
-            </label>
-            <div className="grid grid-cols-1 gap-2">
-              {SKILL_OPTIONS.map((skill) => (
+            {/* Target Waktu */}
+            <div className="space-y-3 px-3">
+              <label className="font-inter block text-sm font-medium text-foreground">
+                <span className="inline-flex items-center gap-2">
+                  <CiCalendar className="h-5 w-5 text-primary" />
+                  Target waktu
+                </span>
+              </label>
+              {!useCustomDays ? (
+                <>
+                  <div className="flex flex-wrap gap-3">
+                    {TARGET_DAYS.map((days) => (
+                      <button
+                        key={days}
+                        type="button"
+                        onClick={() => setTargetDays(days)}
+                        className={`font-inter rounded-lg border px-5 py-3 text-sm font-medium transition-all cursor-pointer ${targetDays === days
+                            ? "border-primary bg-primary/10 text-primary ring-1 ring-primary"
+                            : "border-border bg-background text-foreground hover:border-primary/50 hover:bg-muted"
+                          }`}
+                      >
+                        {days} hari
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUseCustomDays(true);
+                      setTargetDays("");
+                    }}
+                    className="font-inter text-sm text-primary hover:text-primary-hover transition-colors cursor-pointer"
+                  >
+                    Atur sendiri →
+                  </button>
+                </>
+              ) : (
+                <div className="space-y-2">
+                  <input
+                    type="number"
+                    min="1"
+                    max="365"
+                    value={targetDaysCustom}
+                    onChange={(e) => setTargetDaysCustom(e.target.value)}
+                    placeholder="Masukkan jumlah hari, misal: 45"
+                    className="font-inter block w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUseCustomDays(false);
+                      setTargetDays(30);
+                    }}
+                    className="font-inter text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                  >
+                    Pakai preset
+                  </button>
+                </div>
+              )}
+            </div>
+          </Step>
+
+
+          {/* Step 2: Skill Saat Ini */}
+          <Step>
+            <div className="space-y-3 px-4">
+              <label className="font-inter block text-sm font-medium text-foreground">
+                <span className="inline-flex items-center gap-2">
+                  <CiStar className="h-5 w-5 text-primary" />
+                  Skill kamu saat ini
+                </span>
+              </label>
+              <div className="grid grid-cols-1 gap-2">
+                {SKILL_OPTIONS.map((skill) => (
+                  <button
+                    key={skill.value}
+                    type="button"
+                    onClick={() => toggleSkill(skill.value)}
+                    className={`font-inter flex items-center gap-3 rounded-lg border px-4 py-3 text-sm transition-all cursor-pointer ${selectedSkills.includes(skill.value)
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border bg-background text-foreground hover:border-primary/50 hover:bg-muted"
+                      }`}
+                  >
+                    <span
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs transition-all ${selectedSkills.includes(skill.value)
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-background"
+                        }`}
+                    >
+                      {selectedSkills.includes(skill.value) && (
+                        <svg
+                          className="h-3 w-3"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={3}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      )}
+                    </span>
+                    {skill.label}
+                  </button>
+                ))}
+
+                {/* Toggle Lainnya */}
                 <button
-                  key={skill.value}
                   type="button"
-                  onClick={() => toggleSkill(skill.value)}
-                  className={`font-inter flex items-center gap-3 rounded-lg border px-4 py-3 text-sm transition-all cursor-pointer ${
-                    selectedSkills.includes(skill.value)
+                  onClick={() => toggleSkill("lainnya")}
+                  className={`font-inter flex items-center gap-3 rounded-lg border px-4 py-3 text-sm transition-all cursor-pointer ${skillOther
                       ? "border-primary bg-primary/10 text-primary"
                       : "border-border bg-background text-foreground hover:border-primary/50 hover:bg-muted"
-                  }`}
+                    }`}
                 >
                   <span
-                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs transition-all ${
-                      selectedSkills.includes(skill.value)
+                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs transition-all ${skillOther
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-border bg-background"
-                    }`}
+                      }`}
                   >
-                    {selectedSkills.includes(skill.value) && (
+                    {skillOther && (
                       <svg
                         className="h-3 w-3"
                         fill="none"
@@ -368,95 +432,119 @@ export default function Onboarding() {
                       </svg>
                     )}
                   </span>
-                  {skill.label}
+                  <span>Lainnya</span>
                 </button>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          {/* Jam Belajar Per Hari (Opsional) */}
-          <div className="space-y-3">
-            <label className="font-inter block text-sm font-medium text-foreground">
-              <span className="inline-flex items-center gap-2">
-                <CiClock2 className="h-5 w-5 text-primary" />
-                Jam belajar per hari
-              </span>
-              <span className="ml-1 text-xs text-muted-foreground font-normal">
-                (opsional)
-              </span>
-            </label>
-            <div className="flex items-center gap-3">
-              <input
-                type="number"
-                min="0.5"
-                max="12"
-                step="0.5"
-                value={hoursPerDay}
-                onChange={(e) =>
-                  setHoursPerDay(
-                    e.target.value ? parseFloat(e.target.value) : ""
-                  )
-                }
-                placeholder="1"
-                className="font-inter w-24 rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+              {skillOther && (
+                <input
+                  type="text"
+                  value={skillOtherValue}
+                  onChange={(e) => setSkillOtherValue(e.target.value)}
+                  placeholder="Tulis skill kamu, misal: Game Developer"
+                  className="font-inter mt-2 block w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+                />
+              )}
+            </div>
+          </Step>
+
+          {/* Step 3: Jam Belajar Per Hari & Catatan untuk AI */}
+          <Step>
+            <div className="space-y-3 px-4">
+              <label className="font-inter block text-sm font-medium text-foreground">
+                <span className="inline-flex items-center gap-2">
+                  <CiClock2 className="h-5 w-5 text-primary" />
+                  Jam belajar per hari
+                </span>
+                <span className="ml-1 text-xs text-muted-foreground font-normal">
+                  (opsional)
+                </span>
+              </label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="number"
+                  min="0.5"
+                  max="12"
+                  step="0.5"
+                  value={hoursPerDay}
+                  onChange={(e) =>
+                    setHoursPerDay(
+                      e.target.value ? parseFloat(e.target.value) : ""
+                    )
+                  }
+                  placeholder="1"
+                  className="font-inter w-24 rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+                />
+                <span className="font-inter text-sm text-muted-foreground">
+                  jam / hari
+                </span>
+              </div>
+              <p className="font-inter text-xs text-muted-foreground">
+                Biar kami bisa atur jumlah task yang pas setiap harinya
+              </p>
+            </div>
+
+            {/* Catatan untuk AI (Opsional) */}
+            <div className="space-y-3 px-4">
+              <label className="font-inter block text-sm font-medium text-foreground">
+                <span className="inline-flex items-center gap-2">
+                  <CiStar className="h-5 w-5 text-primary" />
+                  Catatan untuk AI
+                </span>
+                <span className="ml-1 text-xs text-muted-foreground font-normal">
+                  (opsional)
+                </span>
+              </label>
+              <textarea
+                rows={4}
+                value={aiNote}
+                onChange={(e) => setAiNote(e.target.value)}
+                placeholder="Jelaskan preferensi belajarmu lebih detail, misal: gaya belajar, materi yang ingin difokuskan, hal-hal yang kamu sukai atau hindari, dll."
+                className="font-inter block w-full resize-none rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
               />
-              <span className="font-inter text-sm text-muted-foreground">
-                jam / hari
-              </span>
+              <p className="font-inter text-xs text-muted-foreground">
+                Semakin detail, semakin pas roadmap & task yang AI buat untukmu
+              </p>
             </div>
-            <p className="font-inter text-xs text-muted-foreground">
-              Biar kami bisa atur jumlah task yang pas setiap harinya
-            </p>
-          </div>
+          </Step>
 
-          {/* Catatan untuk AI (Opsional) */}
-          <div className="space-y-3">
-            <label className="font-inter block text-sm font-medium text-foreground">
-              <span className="inline-flex items-center gap-2">
-                <CiStar className="h-5 w-5 text-primary" />
-                Catatan untuk AI
-              </span>
-              <span className="ml-1 text-xs text-muted-foreground font-normal">
-                (opsional)
-              </span>
-            </label>
-            <textarea
-              rows={4}
-              value={aiNote}
-              onChange={(e) => setAiNote(e.target.value)}
-              placeholder="Jelaskan preferensi belajarmu lebih detail, misal: gaya belajar, materi yang ingin difokuskan, hal-hal yang kamu sukai atau hindari, dll."
-              className="font-inter block w-full resize-none rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
-            />
-            <p className="font-inter text-xs text-muted-foreground">
-              Semakin detail, semakin pas roadmap & task yang AI buat untukmu
-            </p>
-          </div>
-
-          {/* Error message */}
-          {error && (
-            <div className="font-inter rounded-lg border border-red-400 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {error}
+          {/* Step 4: Loading state - AI sedang generate */}
+          <Step>
+            <div className="text-center space-y-6 px-4 pb-8">
+              <div className="flex justify-center">
+                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                  <FiLoader className="h-8 w-8 text-primary animate-spin" />
+                </div>
+              </div>
+              <div>
+                <h1 className="font-inter text-xl font-bold text-foreground">
+                  Tunggu ya, AI Lagi Siapin Roadmap Belajar Buat Kamu
+                </h1>
+                <p className="font-inter text-sm text-muted-foreground mt-2">
+                  {generateProgress}
+                </p>
+              </div>
+              <div className="space-y-3 mt-6">
+                <SkeletonCard />
+                <SkeletonCard />
+                <SkeletonCard />
+              </div>
+              <p className="font-inter text-xs text-muted-foreground">
+                Proses ini membutuhkan waktu beberapa saat...
+              </p>
             </div>
-          )}
+          </Step>
+        </Stepper>
 
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="font-inter w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-hover disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
-          >
-            {isSubmitting ? "Menyimpan..." : "Buat Roadmap Belajar"}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => router.push("/dashboard")}
-            className="font-inter w-full text-sm cursor-pointer text-muted-foreground hover:text-accent-foreground duration-200"
-          >
-            Atur nanti
-          </button>
-        </form>
+        <button
+          type="button"
+          onClick={() => router.push("/dashboard")}
+          className="font-inter w-full text-sm cursor-pointer text-muted-foreground hover:text-accent-foreground duration-200"
+        >
+          Atur nanti
+        </button>
       </div>
     </main>
   );
 }
+
