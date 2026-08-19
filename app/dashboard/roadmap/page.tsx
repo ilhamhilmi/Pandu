@@ -114,6 +114,8 @@ export default function RoadmapPage() {
           icon={<FiBookOpen className="h-10 w-10 text-primary" />}
           title="Roadmap Belum Dibuat"
           description="Atur preferensi dulu untuk membuat roadmap belajar kamu."
+          actionLabel="Mulai Sekarang"
+          actionHref="/onboarding"
         />
       </div>
     );

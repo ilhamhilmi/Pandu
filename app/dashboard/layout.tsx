@@ -73,12 +73,12 @@ export default function DashboardLayout({
       {/* Sidebar Desktop */}
       <aside className="hidden md:flex md:flex-col md:w-64 md:fixed md:inset-y-0 bg-white border-r border-border z-30">
         {/* Logo */}
-        <div className="flex items-center gap-2 px-6 py-6 border-b border-border">
+        <Link href="/dashboard" className="flex items-center gap-2 px-6 py-6 border-b border-border">
           <div className="bg-white flex items-center justify-center">
             <Image src="/icon/PanduIcon-new.svg" alt="Icon" width={25} height={25} />
           </div>
           <h1 className="font-inter uppercase border rounded-full py-1 px-2.5 text-sm font-semibold border-primary/10 bg-primary/10 text-primary">Ruang Belajar</h1>
-        </div>
+        </Link>
 
         {/* Nav Items */}
         <nav className="flex-1 px-3 py-4 space-y-1">

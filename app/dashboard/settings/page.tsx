@@ -288,7 +288,7 @@ export default function SettingsPage() {
             </div>
             <div className="text-left">
               <p className="font-inter text-sm font-medium text-foreground">
-                Ubah Preferensi Belajar
+                Atur / Ubah Preferensi Belajar
               </p>
               <p className="font-inter text-xs text-muted-foreground">
                 Atur ulang goal, target, atau skill kamu
