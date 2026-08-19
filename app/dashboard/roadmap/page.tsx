@@ -113,7 +113,7 @@ export default function RoadmapPage() {
         <EmptyState
           icon={<FiBookOpen className="h-10 w-10 text-primary" />}
           title="Roadmap Belum Dibuat"
-          description="Selesaikan onboarding dulu untuk membuat roadmap belajar kamu."
+          description="Atur preferensi dulu untuk membuat roadmap belajar kamu."
         />
       </div>
     );

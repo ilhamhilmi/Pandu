@@ -22,7 +22,7 @@ export async function POST() {
 
     if (!preference) {
       return NextResponse.json(
-        { error: "Selesaikan onboarding dulu untuk mengatur goal belajarmu." },
+        { error: "Atur preferensi kamu dulu untuk mengatur goal belajarmu." },
         { status: 400 }
       );
     }
