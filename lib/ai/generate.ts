@@ -8,6 +8,7 @@ interface UserPreference {
   targetDays: number;
   selectedSkills: string[];
   hoursPerDay?: number | null;
+  aiNote?: string | null;
 }
 
 interface RoadmapPhase {
@@ -274,6 +275,7 @@ export async function generateRoadmap(
   const hoursPerDay = preference.hoursPerDay
     ? `${preference.hoursPerDay} jam per hari`
     : "waktu fleksibel";
+  const aiNote = preference.aiNote?.trim();
 
   const prompt = `Kamu adalah seorang mentor programming yang berpengalaman. Buatkan roadmap belajar yang terstruktur dan personal untuk seseorang dengan detail berikut:
 
@@ -281,7 +283,11 @@ Goal: ${goalLabel}
 Target waktu: ${preference.targetDays} hari
 Skill saat ini: ${skills || "Belum tahu apa-apa"}
 Waktu belajar: ${hoursPerDay}
-
+${
+  aiNote
+    ? `Catatan tambahan dari pengguna (jadikan sebagai konteks utama dalam menyusun roadmap):\n${aiNote}\n`
+    : ""
+}
 Pertama, tuliskan kolom "reasoning" (Bahasa Indonesia, 3-5 kalimat) yang menjelaskan dengan jujur dan transparan MENGAPA kamu menyusun roadmap ini seperti ini: urutan fase, durasi waktu belajar, cara progres bertahap menuju goal. Lalu berikan SATU saran belajar singkat untuk pengguna menggunakan kata "kamu".
 
 Kemudian, tuliskan kolom "phases": array berisi fase-fase pembelajaran. Setiap fase harus memiliki:
@@ -341,6 +347,7 @@ export async function generateDailyTasks(
   day: number,
   totalDays: number,
   hoursPerDay?: number | null,
+  aiNote?: string | null,
   difficultyFeedback?: string
 ): Promise<DailyTaskItem[]> {
   const roadmapSummary = roadmap
@@ -350,6 +357,8 @@ export async function generateDailyTasks(
     )
     .join("\n");
 
+  const aiNoteLabel = aiNote?.trim();
+
   const g = buildDailyTaskGuidance(hoursPerDay);
 
   const guidance = buildTaskGuidancePrompt(hoursPerDay, difficultyFeedback);
@@ -358,7 +367,7 @@ export async function generateDailyTasks(
 
 ROADMAP:
 ${roadmapSummary}
-
+${aiNoteLabel ? `CATATAN PENGGUNA (jadikan sebagai konteks utama saat menyusun task):\n${aiNoteLabel}\n` : ""}
 ${guidance}
 Setiap task harus memiliki:
 - title: Nama task dalam Bahasa Indonesia. Tulis sebagai PERINTAH yang jelas dan bisa langsung diikuti pemula (otodidak). Mulai dengan kata kerja aksi seperti "Pelajari...", "Coba...", "Baca...", "Praktikkan...", "Buat...", "Tonton...", atau "Latih..." diikuti objek yang konkret (konsep/materi).
@@ -419,6 +428,7 @@ OUTPUT HANYA JSON ARRAY, tanpa markdown, tanpa teks lain. Format:
  * @param daysToGenerate - How many days to generate in this batch (default 7)
  * @param totalDays - Total target days from the roadmap
  * @param hoursPerDay - User's daily study hours (drives task density)
+ * @param aiNote - Optional user note/preferences for the AI (used in prompt)
  * @param difficultyFeedback - Optional user feedback on difficulties (used in prompt)
  */
 export async function generateDailyTasksBatch(
@@ -427,6 +437,7 @@ export async function generateDailyTasksBatch(
   daysToGenerate: number = 7,
   totalDays: number,
   hoursPerDay?: number | null,
+  aiNote?: string | null,
   difficultyFeedback?: string
 ): Promise<{ batches: DailyTaskBatch[]; reasoning: string }> {
   const roadmapSummary = roadmap
@@ -434,6 +445,8 @@ export async function generateDailyTasksBatch(
       (phase) => `${phase.week} - ${phase.title}: ${phase.topics.join(", ")}`
     )
     .join("\n");
+
+  const aiNoteLabel = aiNote?.trim();
 
   const hoursPerDayLabel = hoursPerDay
     ? `${hoursPerDay} jam per hari`
@@ -452,7 +465,7 @@ export async function generateDailyTasksBatch(
 
 ROADMAP:
 ${roadmapSummary}
-
+${aiNoteLabel ? `CATATAN PENGGUNA (jadikan sebagai konteks utama saat menyusun task):\n${aiNoteLabel}\n` : ""}
 ${guidance}
 Setiap task harus memiliki:
 - title: Nama task dalam Bahasa Indonesia. Tulis sebagai PERINTAH yang jelas dan bisa langsung diikuti pemula (otodidak). Mulai dengan kata kerja aksi seperti "Pelajari...", "Coba...", "Baca...", "Praktikkan...", "Buat...", "Tonton...", atau "Latih..." diikuti objek yang konkret (konsep/materi).

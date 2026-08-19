@@ -50,6 +50,7 @@ export async function POST() {
       targetDays: preference.targetDays,
       selectedSkills: preference.selectedSkills,
       hoursPerDay: preference.hoursPerDay,
+      aiNote: preference.aiNote,
     });
 
     // 5. Save to database

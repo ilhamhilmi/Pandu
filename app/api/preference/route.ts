@@ -35,6 +35,7 @@ export async function GET() {
           targetDays: preference.targetDays,
           selectedSkills: preference.selectedSkills,
           hoursPerDay: preference.hoursPerDay,
+          aiNote: preference.aiNote,
         },
       },
       { status: 200 }

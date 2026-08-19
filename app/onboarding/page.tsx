@@ -38,6 +38,7 @@ export default function Onboarding() {
   const [targetDaysCustom, setTargetDaysCustom] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [hoursPerDay, setHoursPerDay] = useState<number | "">(1);
+  const [aiNote, setAiNote] = useState("");
   const [useCustomDays, setUseCustomDays] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -111,6 +112,7 @@ export default function Onboarding() {
           targetDays: finalTargetDays,
           selectedSkills,
           hoursPerDay: hoursPerDay || null,
+          aiNote: aiNote.trim() || undefined,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         }),
       });
@@ -179,7 +181,7 @@ export default function Onboarding() {
           {/* Title */}
           <div>
             <h1 className="font-inter text-xl font-bold text-foreground">
-              Menyiapkan Roadmap Belajar
+              Tunggu ya, AI Lagi Siapin Roadmap Belajar Buat Kamu
             </h1>
             <p className="font-inter text-sm text-muted-foreground mt-2">
               {generateProgress}
@@ -404,6 +406,29 @@ export default function Onboarding() {
             </div>
             <p className="font-inter text-xs text-muted-foreground">
               Biar kami bisa atur jumlah task yang pas setiap harinya
+            </p>
+          </div>
+
+          {/* Catatan untuk AI (Opsional) */}
+          <div className="space-y-3">
+            <label className="font-inter block text-sm font-medium text-foreground">
+              <span className="inline-flex items-center gap-2">
+                <CiStar className="h-5 w-5 text-primary" />
+                Catatan untuk AI
+              </span>
+              <span className="ml-1 text-xs text-muted-foreground font-normal">
+                (opsional)
+              </span>
+            </label>
+            <textarea
+              rows={4}
+              value={aiNote}
+              onChange={(e) => setAiNote(e.target.value)}
+              placeholder="Jelaskan preferensi belajarmu lebih detail, misal: gaya belajar, materi yang ingin difokuskan, hal-hal yang kamu sukai atau hindari, dll."
+              className="font-inter block w-full resize-none rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+            />
+            <p className="font-inter text-xs text-muted-foreground">
+              Semakin detail, semakin pas roadmap & task yang AI buat untukmu
             </p>
           </div>
 

@@ -25,6 +25,7 @@ interface PreferenceData {
   targetDays: number;
   selectedSkills: string[];
   hoursPerDay: number | null;
+  aiNote: string | null;
 }
 
 interface UserData {
@@ -264,6 +265,26 @@ export default function SettingsPage() {
                 </p>
               </div>
             </div>
+
+            {preference.aiNote && (
+              <>
+                <div className="h-px bg-border" />
+                {/* AI Note */}
+                <div className="flex items-start gap-3">
+                  <div className="h-9 w-9 rounded-lg bg-violet-100 flex items-center justify-center shrink-0">
+                    <FiStar className="h-4 w-4 text-violet-500" />
+                  </div>
+                  <div>
+                    <p className="font-inter text-sm font-medium text-foreground">
+                      Catatan untuk AI
+                    </p>
+                    <p className="font-inter text-sm text-muted-foreground whitespace-pre-line">
+                      {preference.aiNote}
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

@@ -19,7 +19,7 @@ export async function POST(request: Request) {
 
     // 2. Parse request body
     const body = await request.json();
-    const { goal, goalCustom, targetDays, selectedSkills, hoursPerDay, timezone } = body;
+    const { goal, goalCustom, targetDays, selectedSkills, hoursPerDay, timezone, aiNote } = body;
 
     // 3. Validate required fields
     if (!goal || !targetDays || !selectedSkills) {
@@ -55,6 +55,7 @@ export async function POST(request: Request) {
         targetDays,
         selectedSkills,
         hoursPerDay: hoursPerDay || null,
+        aiNote: aiNote?.trim() || null,
         timezone: timezone || undefined,
       },
       create: {
@@ -64,6 +65,7 @@ export async function POST(request: Request) {
         targetDays,
         selectedSkills,
         hoursPerDay: hoursPerDay || null,
+        aiNote: aiNote?.trim() || null,
         timezone: timezone || null,
       },
     });

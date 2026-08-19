@@ -34,6 +34,7 @@ export async function POST(request: Request) {
       where: { userId: user.id },
     });
     const hoursPerDay = preference?.hoursPerDay ?? null;
+    const aiNote = preference?.aiNote ?? null;
 
     // 4. Parse optional body: startDay & difficultyFeedback
     let startDay = 1;
@@ -95,6 +96,7 @@ export async function POST(request: Request) {
       daysToGenerate,
       totalDays,
       hoursPerDay,
+      aiNote,
       difficultyFeedback
     );
 
