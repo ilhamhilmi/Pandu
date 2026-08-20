@@ -110,19 +110,6 @@
   }
 }
 
-@theme {
-  --animate-marquee: marquee 90s linear infinite;
-
-  @keyframes marquee {
-    from {
-      transform: translateX(0);
-    }
-    to {
-      transform: translateX(-50%);
-    }
-  }
-}
-
 .font-inter {
   font-family: var(--font-inter);
 }

@@ -1,5 +1,8 @@
 import SectionHeading from "./SectionHeading";
 import { STEPS, type Step } from "./content";
+import { AnimatedBeamMultipleOutputDemo } from "../ui/animated-beam-multiple";
+import { AnimatedBeam } from "../ui/animated-beam";
+
 
 export interface StepCardProps {
   step: Step;
@@ -37,7 +40,9 @@ export default function HowItWorks({ steps = STEPS }: HowItWorksProps) {
           subtitle="Dari bingung “harus mulai dari mana” jadi punya rencana harian yang jelas."
         />
 
-        <div className="mt-12 grid gap-6 md:grid-cols-4">
+        <AnimatedBeamMultipleOutputDemo  />
+
+        <div className="mt-10 grid gap-6 md:grid-cols-4">
           {steps.map((step, i) => (
             <StepCard key={step.step} step={step} numberClass={STEP_NUMBERS[i % STEP_NUMBERS.length]} />
           ))}
