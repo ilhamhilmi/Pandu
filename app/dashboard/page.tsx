@@ -365,8 +365,8 @@ export default function DashboardPage() {
       )}
 
       {/* Info: sumber belajar di Perpustakaan */}
-      <div className="flex items-start gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4 sm:p-5 mb-6 sm:mb-8">
-        <span className="mt-0.5 shrink-0 text-primary">
+      <div className="flex items-center gap-3 rounded-xl border border-green-400/20 bg-green-400/5 p-4 sm:p-5 mb-6 sm:mb-8">
+        <span className="mt-0.5 shrink-0 text-green-400">
           <FiInfo className="h-5 w-5" />
         </span>
         <p className="font-inter text-sm text-foreground">
@@ -377,8 +377,8 @@ export default function DashboardPage() {
 
       {/* AI Reasoning: mengapa AI menyarankan tugas ini */}
       {reasoning && (
-        <div className="flex items-start gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4 sm:p-5 mb-6 sm:mb-8">
-          <span className="mt-0.5 shrink-0 text-primary">
+        <div className="flex items-start gap-3 rounded-xl border border-green-400/20 bg-green-400/5 p-4 sm:p-5 mb-6 sm:mb-8">
+          <span className="mt-0.5 shrink-0 text-green-400">
             <FiInfo className="h-5 w-5" />
           </span>
           <div>

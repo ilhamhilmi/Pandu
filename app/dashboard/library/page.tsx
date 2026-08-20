@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { FiYoutube, FiExternalLink } from "react-icons/fi";
+import { FiYoutube, FiExternalLink, FiInfo } from "react-icons/fi";
 import { SkeletonLibrary, SkeletonPageHeader } from "@/components/ui/skeleton";
 import PageHeader from "@/components/dashboard/page-header";
 import ErrorState from "@/components/dashboard/error-state";
@@ -90,6 +90,15 @@ export default function LibraryPage() {
         description="Kumpulan video belajar dan artikel untuk mendukung perjalanan belajarmu."
       />
 
+      <div className="flex items-center gap-3 rounded-xl border border-green-400/20 bg-green-400/5 p-4 sm:p-5 mb-6 sm:mb-8 ">
+        <span className="mt-0.5 shrink-0 text-green-400">
+          <FiInfo className="h-5 w-5" />
+        </span>
+        <p className="font-inter text-sm text-foreground">
+          Materi di sini merupakan rekomendasi dari tim Pandu. Gunakan sebagai titik awal dan tetap eksplorasi sumber belajar lainnya untuk memperluas pemahamanmu ya.
+        </p>
+      </div>
+
       {/* Toggle Video / Artikel */}
       <div className="flex items-center gap-2 mb-8">
         {TABS.map((tab) => {
@@ -98,11 +107,10 @@ export default function LibraryPage() {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`font-inter inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
-                isActive
-                  ? "bg-primary/10 border border-primary text-primary shadow-sm"
-                  : "bg-white border border-border text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}
+              className={`font-inter inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${isActive
+                ? "bg-primary/10 border border-primary text-primary shadow-sm"
+                : "bg-white border border-border text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
             >
               {tab.icon}
               {tab.label}
