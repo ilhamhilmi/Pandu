@@ -1,5 +1,6 @@
 import SectionHeading from "./SectionHeading";
 import { FEATURES, type Feature } from "./content";
+import AccordionGalleryClient from "../ui/AccordionGalleryClient";
 
 export interface FeatureCardProps {
   feature: Feature;
@@ -41,10 +42,14 @@ export default function Features({ features = FEATURES }: FeaturesProps) {
           subtitle="Pandu adalah kurator & perencana — mengarahkanmu ke sumber belajar terbaik, bukan membuat kontennya."
         />
 
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:hidden">
           {features.map((feature, i) => (
             <FeatureCard key={feature.title} feature={feature} chipClass={CARD_CHIPS[i % CARD_CHIPS.length]} />
           ))}
+        </div>
+
+        <div className="mt-12 hidden xl:flex">
+          <AccordionGalleryClient />
         </div>
       </div>
     </section>
