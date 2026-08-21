@@ -67,13 +67,13 @@ export function AnimatedBeamMultipleOutputDemo({
                     </Circle>
                 </div>
                 <div className="flex flex-col justify-center gap-2">
-                    <Circle ref={div1Ref} className="size-14">
+                    <Circle ref={div1Ref} className="size-14 text-primary-hover font-">
                         <PiPath />
                     </Circle>
-                    <Circle ref={div2Ref} className="size-14">
+                    <Circle ref={div2Ref} className="size-14 text-primary-hover font-">
                         <GrTask />
                     </Circle>
-                    <Circle ref={div3Ref} className="size-14">
+                    <Circle ref={div3Ref} className="size-14 text-primary-hover font-">
                         <RiTargetLine />
                     </Circle>
                 </div>

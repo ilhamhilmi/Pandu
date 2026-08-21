@@ -53,7 +53,7 @@ const AccordionGallery = ({
   duration = 0.6,
   ease = 'power3.out',
   parallax = 0.5,
-  tilt = 8,
+  tilt = 0,
   stagger = 0.06,
   trigger = 'hover',
   showLabels = true,
@@ -78,7 +78,7 @@ const AccordionGallery = ({
       ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
       : false;
 
-  const overlayBg = `linear-gradient(180deg, transparent 45%, color-mix(in srgb, ${overlayColor} 78%, transparent) 100%), color-mix(in srgb, ${overlayColor} calc(var(--ag-dim, 0.35) * 100%), transparent)`;
+  const overlayBg = `linear-gradient(180deg, transparent 45%, color-mix(in srgb, ${overlayColor} 78%, transparent) 100%), color-mix(in srgb, ${overlayColor} calc(var(--ag-dim, 0.10) * 100%), transparent)`;
 
   const applyLayout = useCallback(
     (animate: boolean) => {
