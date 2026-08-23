@@ -348,7 +348,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Streak at-risk: streak aktif tapi hari ini belum ada checklist */}
-      {progress?.streak && progress.streak > 0 && !progress.isActiveToday && (
+      {progress.streak > 0 && !progress.isActiveToday && (
         <div className="flex items-start gap-3 rounded-xl border border-amber-300/60 bg-amber-50 p-4 sm:p-5 mb-6 sm:mb-8">
           <span className="mt-0.5 shrink-0 text-amber-600">
             <FiAlertTriangle className="h-5 w-5" />
