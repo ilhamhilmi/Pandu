@@ -1,7 +1,6 @@
 import SectionHeading from "./SectionHeading";
 import { STEPS, type Step } from "./content";
 import { AnimatedBeamMultipleOutputDemo } from "../ui/animated-beam-multiple";
-import { AnimatedBeam } from "../ui/animated-beam";
 
 
 export interface StepCardProps {
