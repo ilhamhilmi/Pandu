@@ -27,7 +27,7 @@ export default function Home() {
       <Navbar />
       <main>
         <Hero />
-        <Stats />
+        {/* <Stats /> */}
         <Features />
         <HowItWorks />
         <TargetUsers />

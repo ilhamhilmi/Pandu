@@ -380,7 +380,7 @@ Setiap task harus memiliki:
   - url: URL artikel
 
 PENTING UNTUK URL SUMBER BELAJAR (HANYA ARTIKEL):
-- Hanya gunakan URL dari situs terpercaya berikut (pilih yang relevan):
+- Prioritaskan gunakan URL dari situs terpercaya berikut (tidak wajib pakai list URL dibawah, hanya diutamakan. pilih yang relevan):
   - w3schools.com (contoh: https://www.w3schools.com/html/)
   - developer.mozilla.org (MDN Web Docs)
   - freecodecamp.org
@@ -468,7 +468,7 @@ ${roadmapSummary}
 ${aiNoteLabel ? `CATATAN PENGGUNA (jadikan sebagai konteks utama saat menyusun task):\n${aiNoteLabel}\n` : ""}
 ${guidance}
 Setiap task harus memiliki:
-- title: Nama task dalam Bahasa Indonesia. Tulis sebagai PERINTAH yang jelas dan bisa langsung diikuti pemula (otodidak). Mulai dengan kata kerja aksi seperti "Pelajari...", "Coba...", "Baca...", "Praktikkan...", "Buat...", "Tonton...", atau "Latih..." diikuti objek yang konkret (konsep/materi).
+- title: Nama task dalam Bahasa Indonesia. Tulis sebagai PERINTAH yang jelas dan bisa langsung diikuti pemula (beginner friendly). Mulai dengan kata kerja aksi seperti "Pelajari...", "Coba...", "Baca...", "Praktikkan...", "Buat...", "Tonton...", atau "Latih..." diikuti objek yang konkret (konsep/materi).
   - CONTOH BENAR: "Pelajari Konsep HTML", "Pelajari tentang elemen semantik di HTML", "Praktikkan membuat tabel dan formulir di HTML".
   - CONTOH SALAH (terlalu umum/ambigu, JANGAN dipakai): "Konfigurasi HTML", "Membuat komponen sederhana", "Setup environment".
 - duration_minutes: Estimasi durasi dalam menit (angka, antara 15-${g.maxPerTask})
@@ -478,7 +478,7 @@ Setiap task harus memiliki:
   - url: URL artikel
 
 PENTING UNTUK URL SUMBER BELAJAR (HANYA ARTIKEL):
-- Hanya gunakan URL dari situs terpercaya berikut (pilih yang relevan):
+- Prioritaskan gunakan URL dari situs terpercaya berikut (tidak wajib pakai list URL dibawah, hanya diutamakan. pilih yang relevan):
   - w3schools.com (contoh: https://www.w3schools.com/html/)
   - developer.mozilla.org (MDN Web Docs)
   - freecodecamp.org
